@@ -13,7 +13,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - XCTest coverage, XcodeGen project definition, and human/agent maintenance documentation.
 - One-command terminal build and launch workflow through `make run`.
 - Omarchy-style horizontal activity and model meters with explicit history-window labels.
-- Global `Control-Shift-Command-R` shortcut for toggling the TokenBar panel.
+- Configurable global shortcut for toggling the TokenBar panel, defaulting to `Control-Shift-Command-R`.
 - In-panel number shortcuts for direct Claude Code and Codex selection.
 - Configurable icon-only, provider, session, and weekly menu-bar display styles.
 
@@ -24,6 +24,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Agent launch actions now live in Settings, while the usage panel uses a quieter footer and header refresh control.
 - Detailed local-history totals and quota-cycle clarification now live in an on-demand information popover.
 - The usage panel now expands to its content instead of placing metrics in an internal scroll view.
+- Fresh installations now default to the icon-only menu-bar style.
 
 ### Fixed
 

@@ -3,6 +3,17 @@ import XCTest
 @testable import TokenBar
 
 final class TranscriptScannerTests: XCTestCase {
+    func testFreshInstallMenuBarStyleIsIconOnly() {
+        XCTAssertEqual(MenuBarDisplayStyle.initial, .iconOnly)
+        XCTAssertEqual(MenuBarDisplayStyle.initial.label(provider: .claude, limits: []), "")
+    }
+
+    func testStandardGlobalShortcutHasExpectedDisplay() throws {
+        XCTAssertEqual(GlobalShortcut.standard.displayText, "⌃⇧⌘R")
+        let data = try JSONEncoder().encode(GlobalShortcut.standard)
+        XCTAssertEqual(try JSONDecoder().decode(GlobalShortcut.self, from: data), .standard)
+    }
+
     func testMenuBarStylesChooseRequestedLiveLimit() {
         let limits = [
             RateLimit(label: "Session (5-hour)", usedFraction: 0.126, resetsAt: nil),

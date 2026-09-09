@@ -1,12 +1,33 @@
 import Carbon
 import Foundation
 
+struct GlobalShortcut: Codable, Equatable, Sendable {
+    let keyCode: UInt32
+    let modifiers: UInt32
+    let key: String
+
+    static let standard = GlobalShortcut(
+        keyCode: UInt32(kVK_ANSI_R),
+        modifiers: UInt32(cmdKey | controlKey | shiftKey),
+        key: "R"
+    )
+
+    var displayText: String {
+        var value = ""
+        if modifiers & UInt32(controlKey) != 0 { value += "⌃" }
+        if modifiers & UInt32(optionKey) != 0 { value += "⌥" }
+        if modifiers & UInt32(shiftKey) != 0 { value += "⇧" }
+        if modifiers & UInt32(cmdKey) != 0 { value += "⌘" }
+        return value + key
+    }
+}
+
 final class GlobalHotKey: @unchecked Sendable {
     private var eventHandler: EventHandlerRef?
     private var hotKey: EventHotKeyRef?
     private let action: @Sendable () -> Void
 
-    init?(keyCode: UInt32, modifiers: UInt32, action: @escaping @Sendable () -> Void) {
+    init?(shortcut: GlobalShortcut, action: @escaping @Sendable () -> Void) {
         self.action = action
         var eventType = EventTypeSpec(
             eventClass: OSType(kEventClassKeyboard),
@@ -24,8 +45,8 @@ final class GlobalHotKey: @unchecked Sendable {
 
         let identifier = EventHotKeyID(signature: OSType(0x544F4B4E), id: 1) // "TOKN"
         guard RegisterEventHotKey(
-            keyCode,
-            modifiers,
+            shortcut.keyCode,
+            shortcut.modifiers,
             identifier,
             GetApplicationEventTarget(),
             0,

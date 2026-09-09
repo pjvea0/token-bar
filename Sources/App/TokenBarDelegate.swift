@@ -18,7 +18,8 @@ final class TokenBarDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate
         configureStatusItem()
         configurePopover()
         observeMenuLabel()
-        registerGlobalShortcut()
+        observeGlobalShortcut()
+        registerGlobalShortcut(store.globalShortcut)
         registerPanelShortcuts()
         refreshTask = Task { await store.start() }
     }
@@ -79,9 +80,17 @@ final class TokenBarDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate
         statusItem?.button?.title = store.menuLabel
     }
 
-    private func registerGlobalShortcut() {
-        let modifiers = UInt32(cmdKey | controlKey | shiftKey)
-        hotKey = GlobalHotKey(keyCode: UInt32(kVK_ANSI_R), modifiers: modifiers) { [weak self] in
+    private func observeGlobalShortcut() {
+        store.$globalShortcut
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] shortcut in self?.registerGlobalShortcut(shortcut) }
+            .store(in: &subscriptions)
+    }
+
+    private func registerGlobalShortcut(_ shortcut: GlobalShortcut) {
+        hotKey = nil
+        hotKey = GlobalHotKey(shortcut: shortcut) { [weak self] in
             Task { @MainActor in self?.togglePopover() }
         }
         store.globalShortcutAvailable = hotKey != nil

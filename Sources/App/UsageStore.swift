@@ -9,6 +9,7 @@ enum MenuBarDisplayStyle: String, CaseIterable, Identifiable, Sendable {
     case weekly
 
     var id: String { rawValue }
+    static let initial: Self = .iconOnly
 
     var title: String {
         switch self {
@@ -46,8 +47,13 @@ final class UsageStore: ObservableObject {
     @Published var claudeEnabled = true { didSet { defaults.set(claudeEnabled, forKey: Keys.claudeEnabled) } }
     @Published var codexEnabled = true { didSet { defaults.set(codexEnabled, forKey: Keys.codexEnabled) } }
     @Published var globalShortcutAvailable = true
-    @Published var menuBarStyle: MenuBarDisplayStyle = .provider {
+    @Published var menuBarStyle: MenuBarDisplayStyle = .initial {
         didSet { defaults.set(menuBarStyle.rawValue, forKey: Keys.menuBarStyle) }
+    }
+    @Published var globalShortcut: GlobalShortcut = .standard {
+        didSet {
+            if let data = try? JSONEncoder().encode(globalShortcut) { defaults.set(data, forKey: Keys.globalShortcut) }
+        }
     }
     private let service = UsageService()
     private let defaults: UserDefaults
@@ -60,6 +66,8 @@ final class UsageStore: ObservableObject {
         if defaults.object(forKey: Keys.claudeEnabled) != nil { claudeEnabled = defaults.bool(forKey: Keys.claudeEnabled) }
         if defaults.object(forKey: Keys.codexEnabled) != nil { codexEnabled = defaults.bool(forKey: Keys.codexEnabled) }
         if let raw = defaults.string(forKey: Keys.menuBarStyle), let style = MenuBarDisplayStyle(rawValue: raw) { menuBarStyle = style }
+        if let data = defaults.data(forKey: Keys.globalShortcut),
+           let shortcut = try? JSONDecoder().decode(GlobalShortcut.self, from: data) { globalShortcut = shortcut }
     }
 
     var current: ProviderUsage? { usages.first { $0.id == selected } ?? usages.first }
@@ -97,5 +105,6 @@ final class UsageStore: ObservableObject {
         static let claudeEnabled = "claudeEnabled"
         static let codexEnabled = "codexEnabled"
         static let menuBarStyle = "menuBarStyle"
+        static let globalShortcut = "globalShortcut"
     }
 }

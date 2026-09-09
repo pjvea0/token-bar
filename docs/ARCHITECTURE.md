@@ -16,9 +16,9 @@ The central design rule is normalization before presentation. Every provider pro
 
 `Domain` contains `Sendable`, `Codable` value types. `Infrastructure` owns blocking and asynchronous I/O behind the `UsageService` actor. `App` owns main-actor observable state, refresh scheduling, the AppKit status item, and global shortcut registration. `UI` renders normalized state and emits intent.
 
-The status item uses an `NSPopover` whose content is the existing SwiftUI `UsagePanel`. AppKit owns this thin shell because SwiftUI's public `MenuBarExtra` API can control insertion but cannot programmatically present its window. The Carbon hot-key API provides system-wide activation without keyboard monitoring or Accessibility permission.
+The status item uses an `NSPopover` whose content is the existing SwiftUI `UsagePanel`. AppKit owns this thin shell because SwiftUI's public `MenuBarExtra` API can control insertion but cannot programmatically present its window. The Carbon hot-key API provides system-wide activation without keyboard monitoring or Accessibility permission. The selected physical key code, Carbon modifier mask, and display label are persisted as one `GlobalShortcut` value; changing it tears down the previous registration before installing the replacement.
 
-An AppKit local event monitor handles unmodified `1` and `2` only while the popover is visible. It never observes events delivered to other applications. Menu-bar display style is a persisted presentation preference in `UsageStore`; labels are derived from each refreshed normalized limit rather than cached separately.
+An AppKit local event monitor handles unmodified `1` and `2` only while the popover is visible. It never observes events delivered to other applications. Menu-bar display style is a persisted presentation preference in `UsageStore`; fresh installations default to icon-only, and labels are derived from each refreshed normalized limit rather than cached separately.
 
 ## Collection semantics
 

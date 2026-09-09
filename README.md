@@ -36,7 +36,7 @@ Opening Xcode is optional. The first Claude refresh may display a macOS prompt f
 
 | Action | Control |
 | --- | --- |
-| Open or close TokenBar globally | `Control-Shift-Command-R` |
+| Open or close TokenBar globally | `Control-Shift-Command-R` by default; configurable in Settings |
 | Select Claude Code while open | `1` |
 | Select Codex while open | `2` |
 | Refresh while open | `R` or the refresh button |
@@ -44,7 +44,7 @@ Opening Xcode is optional. The first Claude refresh may display a macOS prompt f
 | Show aggregate details | Information button |
 | Quit | Power button |
 
-The global shortcut uses macOS hot-key registration and does not require Accessibility or Input Monitoring permission. Settings reports if another application has already reserved it.
+The global shortcut uses macOS hot-key registration and does not require Accessibility or Input Monitoring permission. Click the shortcut in Settings to record another modified key combination; Escape cancels recording, and the reset button restores the default. Settings reports if another application has already reserved the chosen combination.
 
 ## Menu-bar display styles
 
@@ -52,8 +52,8 @@ Settings → Menu Bar provides four persistent styles:
 
 | Style | Example | Behavior |
 | --- | --- | --- |
-| Icon only | sparkle icon | Uses the least menu-bar space |
-| Provider | `Cl` or `Cx` | Default; shows the selected provider without a percentage |
+| Icon only | sparkle icon | Default; uses the least menu-bar space |
+| Provider | `Cl` or `Cx` | Shows the selected provider without a percentage |
 | Session usage | `Cl 18%` | Shows the refreshed session limit |
 | Weekly usage | `Cx 42%` | Shows the refreshed weekly limit |
 
