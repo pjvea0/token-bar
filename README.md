@@ -19,15 +19,14 @@ TokenBar runs on **macOS 15.0 and newer**, including macOS 15.7.4. It is a menu-
 | [XcodeGen](https://github.com/yonaskolb/XcodeGen) | Generates the local Xcode project from `project.yml` |
 | Claude Code or Codex | At least one supported CLI should be installed and signed in |
 
-Clone or download the repository, then run from a terminal:
+Clone and run from a terminal:
 
 ```sh
-cd ai-mac-menu
+git clone https://github.com/hatunike/token-bar.git
+cd token-bar
 brew install xcodegen
 make run
 ```
-
-If your checkout uses a different directory name, `cd` into that directory instead.
 
 `make run` performs the complete workflow: it generates `TokenBar.xcodeproj`, builds into `.build/DerivedData`, stops an older development instance, and launches the new build. Look for the sparkle icon in the menu bar.
 
