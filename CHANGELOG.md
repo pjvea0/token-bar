@@ -21,6 +21,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Local transcript statistics are explicitly distinguished from provider-reported limit cycles.
 - Agent launch actions now live in Settings, while the usage panel uses a quieter footer and header refresh control.
 - Detailed local-history totals and quota-cycle clarification now live in an on-demand information popover.
+- The usage panel now expands to its content instead of placing metrics in an internal scroll view.
 
 ### Fixed
 

@@ -69,21 +69,19 @@ struct UsagePanel: View {
     }
 
     @ViewBuilder private func providerContent(_ usage: ProviderUsage) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                if let status = usage.status {
-                    Label { VStack(alignment: .leading) { Text(status).font(.callout.bold()); Text(usage.help ?? "").font(.caption) } }
-                    icon: { Image(systemName: "exclamationmark.triangle") }.foregroundStyle(.orange)
-                }
-                ForEach(usage.limits) { limit in LimitRow(limit: limit) }
-                if usage.hasUsage {
-                    SectionTitle("Tokens by day", scope: "Last 7 days")
-                    DayRows(days: usage.days)
-                    SectionTitle("Tokens by model", scope: usage.historyScope.title)
-                    ModelRows(models: usage.models)
-                }
+        VStack(alignment: .leading, spacing: 16) {
+            if let status = usage.status {
+                Label { VStack(alignment: .leading) { Text(status).font(.callout.bold()); Text(usage.help ?? "").font(.caption) } }
+                icon: { Image(systemName: "exclamationmark.triangle") }.foregroundStyle(.orange)
             }
-        }.frame(maxHeight: 550)
+            ForEach(usage.limits) { limit in LimitRow(limit: limit) }
+            if usage.hasUsage {
+                SectionTitle("Tokens by day", scope: "Last 7 days")
+                DayRows(days: usage.days)
+                SectionTitle("Tokens by model", scope: usage.historyScope.title)
+                ModelRows(models: usage.models)
+            }
+        }
     }
 
     private var emptyState: some View {
