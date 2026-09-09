@@ -16,6 +16,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Configurable global shortcut for toggling the TokenBar panel, defaulting to `Control-Shift-Command-R`.
 - In-panel number shortcuts for direct Claude Code and Codex selection.
 - Configurable icon-only, provider, session, and weekly menu-bar display styles.
+- System-following appearance with persistent Light and Dark overrides.
 
 ### Changed
 

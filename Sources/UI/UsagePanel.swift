@@ -13,6 +13,7 @@ struct UsagePanel: View {
         }
         .padding(18)
         .frame(width: 390)
+        .preferredColorScheme(store.appearance.colorScheme)
     }
 
     private var header: some View {

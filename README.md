@@ -59,6 +59,16 @@ Settings → Menu Bar provides four persistent styles:
 
 If a selected live limit is unavailable, TokenBar falls back to the provider abbreviation rather than displaying stale or invented data.
 
+## Appearance
+
+Settings → Appearance controls TokenBar independently from the rest of macOS:
+
+- **System** is the default and follows the current macOS Light or Dark appearance.
+- **Light** keeps TokenBar light even when macOS is dark.
+- **Dark** keeps TokenBar dark even when macOS is light.
+
+The setting applies immediately to the usage panel, information popover, and Settings window, and persists across launches.
+
 ## What the numbers mean
 
 Provider limits and local transcript totals are separate datasets:

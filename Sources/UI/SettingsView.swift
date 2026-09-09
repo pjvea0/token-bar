@@ -14,6 +14,16 @@ struct SettingsView: View {
                 Stepper("Every \(store.refreshMinutes) minutes", value: $store.refreshMinutes, in: 1...60)
                 Button("Refresh Now") { Task { await store.refresh() } }
             }
+            Section("Appearance") {
+                Picker("Color scheme", selection: $store.appearance) {
+                    ForEach(AppAppearance.allCases) { appearance in
+                        Text(appearance.title).tag(appearance)
+                    }
+                }
+                .pickerStyle(.segmented)
+                Text("System follows the current macOS appearance. Light and Dark override it for TokenBar only.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Section("Menu Bar") {
                 Picker("Display", selection: $store.menuBarStyle) {
                     ForEach(MenuBarDisplayStyle.allCases) { style in
@@ -60,7 +70,11 @@ struct SettingsView: View {
                 Text("TokenBar reads local CLI transcripts. Claude credentials are read only to request account limits directly from Anthropic; credentials are never stored by TokenBar.")
                     .font(.caption).foregroundStyle(.secondary)
             }
-        }.formStyle(.grouped).frame(width: 440, height: 650).padding()
+        }
+        .formStyle(.grouped)
+        .frame(width: 440, height: 650)
+        .padding()
+        .preferredColorScheme(store.appearance.colorScheme)
     }
 }
 

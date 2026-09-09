@@ -20,6 +20,8 @@ The status item uses an `NSPopover` whose content is the existing SwiftUI `Usage
 
 An AppKit local event monitor handles unmodified `1` and `2` only while the popover is visible. It never observes events delivered to other applications. Menu-bar display style is a persisted presentation preference in `UsageStore`; fresh installations default to icon-only, and labels are derived from each refreshed normalized limit rather than cached separately.
 
+Appearance is also a persisted `UsageStore` preference. SwiftUI's preferred color scheme covers the panel, nested information popover, and Settings content; the application delegate applies the matching `NSAppearance` to the hosted popover so native chrome changes with the override. A nil appearance preserves normal macOS System behavior.
+
 ## Collection semantics
 
 Transcript files are newline-delimited JSON and treated as an append-only, externally controlled format. Scans skip malformed and irrelevant lines. Claude messages deduplicate by message ID. Codex token snapshots use `last_token_usage`, not cumulative session usage; cached input is subtracted from input before categories are summed.

@@ -37,6 +37,23 @@ enum MenuBarDisplayStyle: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+enum AppAppearance: String, CaseIterable, Identifiable, Sendable {
+    case system
+    case light
+    case dark
+
+    var id: String { rawValue }
+    static let initial: Self = .system
+
+    var title: String {
+        switch self {
+        case .system: "System"
+        case .light: "Light"
+        case .dark: "Dark"
+        }
+    }
+}
+
 @MainActor
 final class UsageStore: ObservableObject {
     @Published var usages: [ProviderUsage] = []
@@ -55,6 +72,9 @@ final class UsageStore: ObservableObject {
             if let data = try? JSONEncoder().encode(globalShortcut) { defaults.set(data, forKey: Keys.globalShortcut) }
         }
     }
+    @Published var appearance: AppAppearance = .initial {
+        didSet { defaults.set(appearance.rawValue, forKey: Keys.appearance) }
+    }
     private let service = UsageService()
     private let defaults: UserDefaults
     private var started = false
@@ -68,6 +88,8 @@ final class UsageStore: ObservableObject {
         if let raw = defaults.string(forKey: Keys.menuBarStyle), let style = MenuBarDisplayStyle(rawValue: raw) { menuBarStyle = style }
         if let data = defaults.data(forKey: Keys.globalShortcut),
            let shortcut = try? JSONDecoder().decode(GlobalShortcut.self, from: data) { globalShortcut = shortcut }
+        if let raw = defaults.string(forKey: Keys.appearance),
+           let savedAppearance = AppAppearance(rawValue: raw) { appearance = savedAppearance }
     }
 
     var current: ProviderUsage? { usages.first { $0.id == selected } ?? usages.first }
@@ -106,5 +128,6 @@ final class UsageStore: ObservableObject {
         static let codexEnabled = "codexEnabled"
         static let menuBarStyle = "menuBarStyle"
         static let globalShortcut = "globalShortcut"
+        static let appearance = "appearance"
     }
 }

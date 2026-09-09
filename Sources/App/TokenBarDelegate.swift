@@ -17,6 +17,7 @@ final class TokenBarDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureStatusItem()
         configurePopover()
+        observeAppearance()
         observeMenuLabel()
         observeGlobalShortcut()
         registerGlobalShortcut(store.globalShortcut)
@@ -74,6 +75,25 @@ final class TokenBarDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate
                 DispatchQueue.main.async { self?.updateMenuLabel() }
             }
             .store(in: &subscriptions)
+    }
+
+    private func observeAppearance() {
+        applyAppearance(store.appearance)
+        store.$appearance
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] appearance in self?.applyAppearance(appearance) }
+            .store(in: &subscriptions)
+    }
+
+    private func applyAppearance(_ appearance: AppAppearance) {
+        let nativeAppearance: NSAppearance? = switch appearance {
+        case .system: nil
+        case .light: NSAppearance(named: .aqua)
+        case .dark: NSAppearance(named: .darkAqua)
+        }
+        NSApp.appearance = nativeAppearance
+        popover.contentViewController?.view.appearance = nativeAppearance
     }
 
     private func updateMenuLabel() {
