@@ -20,7 +20,7 @@ The central design rule is normalization before presentation. Every provider pro
 
 Transcript files are newline-delimited JSON and treated as an append-only, externally controlled format. Scans skip malformed and irrelevant lines. Claude messages deduplicate by message ID. Codex token snapshots use `last_token_usage`, not cumulative session usage; cached input is subtracted from input before categories are summed.
 
-Calendar-day aggregation uses the user's current calendar and timezone. The seven-day series always contains seven buckets, including zero-use days.
+Calendar-day aggregation uses the user's current calendar and timezone. The seven-day series always contains seven buckets, including zero-use days. Claude model and summary totals cover every retained local transcript event. Codex totals use each event's timestamp to enforce a rolling 30-day window; file modification dates do not determine inclusion. Future-dated events are excluded. These local history windows are independent of provider-reported quota cycles.
 
 ## Concurrency
 

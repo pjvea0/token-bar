@@ -9,6 +9,8 @@ struct TranscriptScanner: Sendable {
     }
 
     func scan(provider: ProviderID, roots: [URL], now: Date = .now) -> ProviderUsage {
+        let historyScope: UsageHistoryScope = provider == .codex ? .rollingDays(30) : .allLocalHistory
+        let historyStart = provider == .codex ? calendar.date(byAdding: .day, value: -30, to: now) : nil
         var seen = Set<String>()
         var sessionDays: [String: Set<Date>] = [:]
         var days: [Date: (tokens: Int, prompts: Int)] = [:]
@@ -32,6 +34,7 @@ struct TranscriptScanner: Sendable {
                 guard let event = parse(value, provider: provider, file: file, defaultModel: currentModel) else { continue }
                 let unique = event.messageID ?? "\(file.path):\(rawLine.hashValue)"
                 guard seen.insert(unique).inserted else { continue }
+                guard event.date <= now, historyStart.map({ event.date >= $0 }) ?? true else { continue }
                 let day = calendar.startOfDay(for: event.date)
                 days[day, default: (0, 0)].tokens += event.tokens.total
                 days[day, default: (0, 0)].prompts += 1
@@ -49,6 +52,7 @@ struct TranscriptScanner: Sendable {
         return ProviderUsage(
             id: provider, plan: "", limits: [], days: recent,
             models: models.map { ModelUsage(name: $0.key, tokens: $0.value) }.sorted { $0.tokens.total > $1.tokens.total },
+            historyScope: historyScope,
             totalPrompts: days.values.reduce(0) { $0 + $1.prompts }, totalSessions: sessionDays.count,
             activeDays: days.count, updatedAt: now, status: nil, help: nil
         )

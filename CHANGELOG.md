@@ -12,6 +12,12 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Provider switching, daily chart, model breakdowns, refresh, settings, and launch actions.
 - XCTest coverage, XcodeGen project definition, and human/agent maintenance documentation.
 - One-command terminal build and launch workflow through `make run`.
+- Omarchy-style horizontal activity and model meters with explicit history-window labels.
+
+### Changed
+
+- Codex transcript totals now use event timestamps for an accurate rolling 30-day window; Claude totals continue to cover all retained local history.
+- Local transcript statistics are explicitly distinguished from provider-reported limit cycles.
 
 ### Fixed
 

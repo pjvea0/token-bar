@@ -51,12 +51,15 @@ struct UsagePanel: View {
                 }
                 ForEach(usage.limits) { limit in LimitRow(limit: limit) }
                 if usage.hasUsage {
-                    SectionTitle("Tokens by day")
-                    DayChart(days: usage.days)
-                    SectionTitle("Tokens by model")
-                    ForEach(usage.models) { model in ModelRow(model: model) }
-                    Text("\(usage.totalPrompts.formatted()) prompts · \(usage.totalSessions.formatted()) sessions · \(usage.activeDays.formatted()) active days")
-                        .font(.caption).foregroundStyle(.secondary)
+                    SectionTitle("Tokens by day", scope: "Last 7 days")
+                    DayRows(days: usage.days)
+                    SectionTitle("Tokens by model", scope: usage.historyScope.title)
+                    ModelRows(models: usage.models)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("\(usage.historyScope.summaryPrefix): \(usage.totalTokens.formatted()) tokens · \(usage.totalPrompts.formatted()) prompts · \(usage.totalSessions.formatted()) sessions · \(usage.activeDays.formatted()) active days")
+                        Text("Local transcript totals are separate from provider limit-cycle usage.")
+                    }
+                    .font(.caption).foregroundStyle(.secondary)
                 }
             }
         }.frame(maxHeight: 550)
@@ -70,8 +73,20 @@ struct UsagePanel: View {
 
 private struct SectionTitle: View {
     let title: String
-    init(_ title: String) { self.title = title }
-    var body: some View { Text(title.uppercased()).font(.caption.bold()).foregroundStyle(.secondary) }
+    let scope: String
+    init(_ title: String, scope: String) {
+        self.title = title
+        self.scope = scope
+    }
+    var body: some View {
+        HStack {
+            Text(title.uppercased()).fontWeight(.bold)
+            Spacer()
+            Text(scope.uppercased())
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+    }
 }
 
 private struct LimitRow: View {
@@ -85,29 +100,63 @@ private struct LimitRow: View {
     }
 }
 
-private struct DayChart: View {
+private struct DayRows: View {
     let days: [DayUsage]
     var body: some View {
         let maximum = max(1, days.map(\.tokens).max() ?? 1)
-        HStack(alignment: .bottom, spacing: 7) {
+        VStack(spacing: 5) {
             ForEach(days) { day in
-                VStack {
-                    RoundedRectangle(cornerRadius: 4).fill(.purple.gradient)
-                        .frame(height: max(3, 72 * Double(day.tokens) / Double(maximum)))
-                        .help("\(day.tokens.formatted()) tokens · \(day.prompts) prompts · \(day.sessions) sessions")
-                    Text(day.date, format: .dateTime.weekday(.narrow)).font(.caption2)
-                }.frame(maxWidth: .infinity)
+                UsageMeterRow(label: dayLabel(day.date), value: day.tokens,
+                              fraction: Double(day.tokens) / Double(maximum))
+                    .help("\(day.tokens.formatted()) tokens · \(day.prompts) prompts · \(day.sessions) sessions")
             }
-        }.frame(height: 95, alignment: .bottom)
+        }
+    }
+
+    private func dayLabel(_ date: Date) -> String {
+        if Calendar.current.isDateInToday(date) { return "Today" }
+        return date.formatted(.dateTime.weekday(.abbreviated))
     }
 }
 
-private struct ModelRow: View {
-    let model: ModelUsage
+private struct ModelRows: View {
+    let models: [ModelUsage]
     var body: some View {
-        HStack { Text(model.name).lineLimit(1); Spacer(); Text(model.tokens.total.formatted(.number.notation(.compactName))).monospacedDigit() }
-            .font(.callout).padding(.vertical, 3)
-            .help("Input \(model.tokens.input.formatted()) · Output \(model.tokens.output.formatted()) · Cache read \(model.tokens.cacheRead.formatted()) · Cache write \(model.tokens.cacheWrite.formatted())")
+        let maximum = max(1, models.map(\.tokens.total).max() ?? 1)
+        VStack(spacing: 5) {
+            ForEach(models) { model in
+                UsageMeterRow(label: model.name, value: model.tokens.total,
+                              fraction: Double(model.tokens.total) / Double(maximum))
+                    .help("Input \(model.tokens.input.formatted()) · Output \(model.tokens.output.formatted()) · Cache read \(model.tokens.cacheRead.formatted()) · Cache write \(model.tokens.cacheWrite.formatted())")
+            }
+        }
+    }
+}
+
+private struct UsageMeterRow: View {
+    let label: String
+    let value: Int
+    let fraction: Double
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(Color.purple.opacity(0.16))
+                    .frame(width: geometry.size.width * min(max(fraction, 0), 1))
+                HStack(spacing: 8) {
+                    Text(label).lineLimit(1)
+                    Spacer()
+                    Text(value.formatted(.number.notation(.compactName))).monospacedDigit()
+                }
+                .padding(.horizontal, 7)
+            }
+        }
+        .frame(height: 27)
+        .font(.callout)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(label)
+        .accessibilityValue("\(value.formatted()) tokens")
     }
 }
 

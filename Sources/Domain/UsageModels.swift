@@ -39,6 +39,25 @@ struct ModelUsage: Codable, Identifiable, Equatable, Sendable {
     var id: String { name }
 }
 
+enum UsageHistoryScope: Codable, Equatable, Sendable {
+    case allLocalHistory
+    case rollingDays(Int)
+
+    var title: String {
+        switch self {
+        case .allLocalHistory: "All local history"
+        case .rollingDays(let days): "Last \(days) days"
+        }
+    }
+
+    var summaryPrefix: String {
+        switch self {
+        case .allLocalHistory: "Local history"
+        case .rollingDays(let days): "Last \(days) days"
+        }
+    }
+}
+
 struct RateLimit: Codable, Identifiable, Equatable, Sendable {
     let label: String
     let usedFraction: Double
@@ -52,6 +71,7 @@ struct ProviderUsage: Codable, Identifiable, Equatable, Sendable {
     var limits: [RateLimit]
     var days: [DayUsage]
     var models: [ModelUsage]
+    var historyScope: UsageHistoryScope
     var totalPrompts: Int
     var totalSessions: Int
     var activeDays: Int

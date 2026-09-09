@@ -56,11 +56,48 @@ final class TranscriptScannerTests: XCTestCase {
         ].joined(separator: "\n")
         try Data(lines.utf8).write(to: root.appendingPathComponent("session.jsonl"))
 
-        let result = TranscriptScanner().scan(provider: .codex, root: root)
+        let result = TranscriptScanner().scan(provider: .codex, root: root, now: ISO8601DateFormatter().date(from: "2026-09-08T15:00:00Z")!)
 
         XCTAssertEqual(result.models.first?.tokens.total, 24)
         XCTAssertEqual(result.models.first?.name, "gpt-test")
         XCTAssertEqual(result.models.first?.tokens.input, 15)
         XCTAssertEqual(result.models.first?.tokens.cacheRead, 5)
+    }
+
+    func testCodexHistoryUsesEventTimestampsForRollingThirtyDays() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let lines = [
+            #"{"type":"turn_context","payload":{"model":"gpt-test"}}"#,
+            #"{"timestamp":"2026-08-08T14:59:59Z","payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":100}}}}"#,
+            #"{"timestamp":"2026-08-09T15:00:00Z","payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":20}}}}"#,
+            #"{"timestamp":"2026-09-08T15:00:01Z","payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":200}}}}"#
+        ].joined(separator: "\n")
+        try Data(lines.utf8).write(to: root.appendingPathComponent("session.jsonl"))
+        let now = ISO8601DateFormatter().date(from: "2026-09-08T15:00:00Z")!
+
+        let result = TranscriptScanner().scan(provider: .codex, root: root, now: now)
+
+        XCTAssertEqual(result.historyScope, .rollingDays(30))
+        XCTAssertEqual(result.totalPrompts, 1)
+        XCTAssertEqual(result.totalSessions, 1)
+        XCTAssertEqual(result.activeDays, 1)
+        XCTAssertEqual(result.totalTokens, 20)
+    }
+
+    func testClaudeHistoryKeepsEventsOlderThanThirtyDays() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let line = #"{"type":"assistant","timestamp":"2025-01-01T12:00:00Z","sessionId":"old-session","message":{"id":"old-message","role":"assistant","model":"claude-test","usage":{"input_tokens":10}}}"#
+        try Data("\(line)\n".utf8).write(to: root.appendingPathComponent("session.jsonl"))
+        let now = ISO8601DateFormatter().date(from: "2026-09-08T15:00:00Z")!
+
+        let result = TranscriptScanner().scan(provider: .claude, root: root, now: now)
+
+        XCTAssertEqual(result.historyScope, .allLocalHistory)
+        XCTAssertEqual(result.totalTokens, 10)
+        XCTAssertEqual(result.activeDays, 1)
     }
 }
