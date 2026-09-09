@@ -28,7 +28,7 @@ Calendar-day aggregation uses the user's current calendar and timezone. The seve
 
 ## Security boundary
 
-The app is deliberately unsandboxed to read CLI-owned files. Credential access is narrow: Claude's access token is decoded in the collector, used in one HTTPS authorization header, and discarded. Codex authentication remains inside the Codex child process. Errors exposed to UI must never include request headers or raw responses.
+The app is deliberately unsandboxed to read CLI-owned files. Credential access is narrow: Claude's access token is read from the `Claude Code-credentials` macOS Keychain item (or the CLI file fallback), decoded in the collector, used in one HTTPS authorization header, and discarded. Codex authentication remains inside the Codex child process. Errors exposed to UI must never include request headers or raw responses.
 
 ## Extension points
 

@@ -3,6 +3,17 @@ import XCTest
 @testable import TokenBar
 
 final class TranscriptScannerTests: XCTestCase {
+    func testDecodesClaudeCredentialWithoutPersistingIt() throws {
+        let data = Data(#"{"claudeAiOauth":{"accessToken":"secret-test-token","expiresAt":2000000000000,"rateLimitTier":"default_claude_max_20x","subscriptionType":"max"}}"#.utf8)
+
+        let credential = ClaudeCredentialLoader().decode(data)
+
+        XCTAssertEqual(credential?.accessToken, "secret-test-token")
+        XCTAssertEqual(credential?.expiresAtMilliseconds, 2_000_000_000_000)
+        XCTAssertEqual(credential?.rateLimitTier, "default_claude_max_20x")
+        XCTAssertEqual(credential?.subscriptionType, "max")
+    }
+
     func testScansClaudeTranscriptWithoutDoubleCountingMessageIDs() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

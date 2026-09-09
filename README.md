@@ -49,7 +49,7 @@ The generated `TokenBar.xcodeproj` is intentionally ignored. `project.yml` is th
 
 TokenBar is local-first and does not operate a server. It reads `~/.claude/projects/**/*.jsonl` and `~/.codex/sessions/**/*.jsonl`. For live limits it:
 
-- reads the Claude Code OAuth token from `~/.claude/.credentials.json` and sends it only to Anthropic's own usage endpoint;
+- reads the Claude Code OAuth token from macOS Keychain (with `~/.claude/.credentials.json` as a compatibility fallback) and sends it only to Anthropic's own usage endpoint;
 - starts `codex app-server` locally and calls its account/rate-limit RPC.
 
 Tokens are held only in memory and are never logged, copied, synchronized, or written by TokenBar. The app is not sandboxed because a sandboxed app cannot discover these CLI-owned files. See [Security](docs/SECURITY.md).

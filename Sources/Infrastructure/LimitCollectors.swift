@@ -57,19 +57,24 @@ struct CodexLimitCollector: Sendable {
 }
 
 struct ClaudeLimitCollector: Sendable {
+    private let credentialLoader = ClaudeCredentialLoader()
+
     func enrich(_ usage: ProviderUsage, credentialsURL: URL) async -> ProviderUsage {
         var result = usage
-        guard let data = try? Data(contentsOf: credentialsURL),
-              let root = try? JSONDecoder().decode(JSONValue.self, from: data),
-              let login = root["claudeAiOauth"], let token = login["accessToken"]?.string else {
+        guard let credential = credentialLoader.load(fileURL: credentialsURL) else {
             result.status = "Waiting for auth"
-            result.help = "Run `claude auth login`. Local token statistics remain available."
+            result.help = "Claude Code has no usable macOS Keychain or credential-file login. Run `claude auth login`, then verify `claude auth status` reports loggedIn: true."
             return result
         }
-        result.plan = plan(login["rateLimitTier"]?.string, login["subscriptionType"]?.string)
+        if let expiry = credential.expiresAtMilliseconds, expiry <= Int(Date.now.timeIntervalSince1970 * 1_000) {
+            result.status = "Sign-in expired"
+            result.help = "Run `claude auth login` and verify `claude auth status` reports loggedIn: true. Local token statistics remain available."
+            return result
+        }
+        result.plan = plan(credential.rateLimitTier, credential.subscriptionType)
         var request = URLRequest(url: URL(string: "https://api.anthropic.com/api/oauth/usage")!)
         request.timeoutInterval = 10
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(credential.accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         do {

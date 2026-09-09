@@ -12,3 +12,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Provider switching, daily chart, model breakdowns, refresh, settings, and launch actions.
 - XCTest coverage, XcodeGen project definition, and human/agent maintenance documentation.
 - One-command terminal build and launch workflow through `make run`.
+
+### Fixed
+
+- Read Claude Code authentication from macOS Keychain instead of assuming the Linux credential-file location.
+- Explain failed and expired Claude authentication using the authoritative `claude auth status` check.
