@@ -1,0 +1,35 @@
+# Architecture
+
+## System shape
+
+```text
+CLI-owned data             Provider adapters                Normalized state          Native UI
+~/.claude/projects  ─┐     TranscriptScanner ─┐
+~/.codex/sessions   ─┴──▶  LimitCollectors   ─┴──▶ UsageService ─▶ UsageStore ─▶ MenuBarExtra
+Anthropic endpoint  ─────▶ Claude adapter
+codex app-server    ─────▶ Codex adapter
+```
+
+The central design rule is normalization before presentation. Every provider produces `ProviderUsage`; views do not know JSON paths, OAuth headers, or RPC methods.
+
+## Layers
+
+`Domain` contains `Sendable`, `Codable` value types. `Infrastructure` owns blocking and asynchronous I/O behind the `UsageService` actor. `App` owns main-actor observable state and refresh scheduling. `UI` renders normalized state and emits intent.
+
+## Collection semantics
+
+Transcript files are newline-delimited JSON and treated as an append-only, externally controlled format. Scans skip malformed and irrelevant lines. Claude messages deduplicate by message ID. Codex token snapshots use `last_token_usage`, not cumulative session usage; cached input is subtracted from input before categories are summed.
+
+Calendar-day aggregation uses the user's current calendar and timezone. The seven-day series always contains seven buckets, including zero-use days.
+
+## Concurrency
+
+`UsageStore` is isolated to the main actor. `UsageService` is an actor so filesystem scans and provider requests cannot overlap internally. Provider result types cross that boundary as `Sendable` values. A refresh guard prevents duplicate user/timer requests.
+
+## Security boundary
+
+The app is deliberately unsandboxed to read CLI-owned files. Credential access is narrow: Claude's access token is decoded in the collector, used in one HTTPS authorization header, and discarded. Codex authentication remains inside the Codex child process. Errors exposed to UI must never include request headers or raw responses.
+
+## Extension points
+
+Add a provider by extending `ProviderID`, writing a scanner/limits adapter, composing it in `UsageService`, and adding sanitized fixtures. Cross-device sync should serialize normalized snapshots only—never credentials or source transcripts—and must distinguish device-local statistics from account-global limits.
