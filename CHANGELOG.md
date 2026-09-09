@@ -11,3 +11,4 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Live Claude and Codex subscription-limit collectors.
 - Provider switching, daily chart, model breakdowns, refresh, settings, and launch actions.
 - XCTest coverage, XcodeGen project definition, and human/agent maintenance documentation.
+- One-command terminal build and launch workflow through `make run`.

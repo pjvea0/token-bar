@@ -2,7 +2,7 @@
 
 ## Local setup
 
-Install Xcode and XcodeGen, then run `make bootstrap` and `make test`. Open `ai-menu-bar.xcworkspace` for development. Do not commit the generated `.xcodeproj` or user workspace state.
+Install Xcode and XcodeGen, then run `make run` to build and launch entirely from the terminal. Run `make test` before committing. Xcode is optional (`make xcode`). Do not commit the generated `.xcodeproj` or user workspace state.
 
 ## Change workflow
 

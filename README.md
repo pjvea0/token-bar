@@ -25,15 +25,23 @@ TokenBar intentionally keeps its icon visible before first usage so macOS users 
 Requirements: macOS 15+, Xcode 16+ (Xcode 26 is supported), and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
 
 ```sh
-make bootstrap
-open ai-menu-bar.xcworkspace
+brew install xcodegen # one-time dependency
+make run
 ```
 
-Choose the `TokenBar` scheme and Run. For command-line verification:
+`make run` generates the Xcode project, builds the app into `.build/DerivedData`, stops an older development instance, and launches the newly built app. Look for the sparkle icon and usage label in the menu bar; TokenBar does not appear in the Dock.
+
+Useful terminal commands:
 
 ```sh
+make          # show available commands
+make run      # rebuild and relaunch
+make stop     # quit the development instance
 make test
+make clean
 ```
+
+Opening Xcode is optional. Run `make xcode` only when you want to use its editor or debugger.
 
 The generated `TokenBar.xcodeproj` is intentionally ignored. `project.yml` is the reviewable source of truth, which prevents opaque project-file merge conflicts.
 
