@@ -17,3 +17,5 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - Read Claude Code authentication from macOS Keychain instead of assuming the Linux credential-file location.
 - Explain failed and expired Claude authentication using the authoritative `claude auth status` check.
+- Sequence Codex app-server initialization before account requests and enforce bounded RPC read timeouts.
+- Wait for the previous development process to exit before `make run` relaunches TokenBar.

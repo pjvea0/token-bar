@@ -30,7 +30,13 @@ launch:
 	@open '$(APP_PATH)'
 
 stop:
-	@if pgrep -x TokenBar >/dev/null; then pkill -x TokenBar; echo "Stopped TokenBar."; fi
+	@if pgrep -x TokenBar >/dev/null; then \
+		pkill -x TokenBar; \
+		attempt=0; \
+		while pgrep -x TokenBar >/dev/null && [ $$attempt -lt 50 ]; do sleep 0.1; attempt=$$((attempt + 1)); done; \
+		if pgrep -x TokenBar >/dev/null; then echo "TokenBar did not stop cleanly."; exit 1; fi; \
+		echo "Stopped TokenBar."; \
+	fi
 
 test: bootstrap
 	@xcodebuild -quiet -project TokenBar.xcodeproj -scheme TokenBar -configuration Debug -destination 'platform=macOS' -derivedDataPath '$(DERIVED_DATA)' CODE_SIGNING_ALLOWED=NO test

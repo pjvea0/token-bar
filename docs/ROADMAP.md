@@ -2,7 +2,7 @@
 
 ## Release 0.1 — hardened local beta
 
-- Add cancellation/timeouts around the Codex child process.
+- Add cooperative cancellation around a running Codex child process.
 - Add cache envelopes so large histories are rescanned only when sources change.
 - Add fixtures for current Claude scoped limits and Codex RPC error responses.
 - Add accessibility and UI tests, application icon, signing, notarization, and release automation.

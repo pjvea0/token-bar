@@ -26,6 +26,7 @@ enum JSONValue: Decodable, Sendable {
 
     var string: String? { if case let .string(value) = self { value } else { nil } }
     var number: Double? { if case let .number(value) = self { value } else { nil } }
+    var bool: Bool? { if case let .bool(value) = self { value } else { nil } }
     var object: [String: JSONValue]? { if case let .object(value) = self { value } else { nil } }
     var array: [JSONValue]? { if case let .array(value) = self { value } else { nil } }
 }

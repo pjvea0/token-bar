@@ -3,6 +3,24 @@ import XCTest
 @testable import TokenBar
 
 final class TranscriptScannerTests: XCTestCase {
+    func testCodexRPCReaderWaitsForMatchingResponse() throws {
+        let pipe = Pipe()
+        let messages = [
+            #"{"method":"notification","params":{}}"#,
+            #"{"id":1,"result":{"ready":true}}"#,
+            #"{"id":2,"result":{"account":{"planType":"pro"}}}"#
+        ].joined(separator: "\n") + "\n"
+        try pipe.fileHandleForWriting.write(contentsOf: Data(messages.utf8))
+        pipe.fileHandleForWriting.closeFile()
+        var reader = CodexRPCReader(handle: pipe.fileHandleForReading)
+
+        let initialize = try reader.response(id: 1, timeoutSeconds: 1)
+        let account = try reader.response(id: 2, timeoutSeconds: 1)
+
+        XCTAssertEqual(initialize?["result"]?["ready"]?.bool, true)
+        XCTAssertEqual(account?["result"]?["account"]?["planType"]?.string, "pro")
+    }
+
     func testDecodesClaudeCredentialWithoutPersistingIt() throws {
         let data = Data(#"{"claudeAiOauth":{"accessToken":"secret-test-token","expiresAt":2000000000000,"rateLimitTier":"default_claude_max_20x","subscriptionType":"max"}}"#.utf8)
 

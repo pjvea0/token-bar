@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 
 struct CodexLimitCollector: Sendable {
     func enrich(_ usage: ProviderUsage) -> ProviderUsage {
@@ -17,34 +18,37 @@ struct CodexLimitCollector: Sendable {
         process.standardError = FileHandle.nullDevice
         do {
             try process.run()
-            let messages = [
-                #"{"id":1,"method":"initialize","params":{"clientInfo":{"name":"TokenBar","version":"1"}}}"#,
-                #"{"method":"initialized","params":{}}"#,
-                #"{"id":2,"method":"account/read","params":{}}"#,
-                #"{"id":3,"method":"account/rateLimits/read","params":{}}"#
-            ].joined(separator: "\n") + "\n"
-            input.fileHandleForWriting.write(Data(messages.utf8))
-            input.fileHandleForWriting.closeFile()
-            let data = output.fileHandleForReading.readDataToEndOfFile()
-            process.waitUntilExit()
-            for line in data.split(separator: 0x0A) {
-                guard let json = try? JSONDecoder().decode(JSONValue.self, from: line) else { continue }
-                if json["id"]?.number == 2 {
-                    result.plan = json["result"]?["account"]?["planType"]?.string ?? result.plan
-                } else if json["id"]?.number == 3, let limits = json["result"]?["rateLimits"] {
-                    result.plan = limits["planType"]?.string ?? result.plan
-                    result.limits = [limits["primary"], limits["secondary"]].compactMap(limit)
-                }
+            defer {
+                input.fileHandleForWriting.closeFile()
+                if process.isRunning { process.terminate() }
+            }
+            var reader = CodexRPCReader(handle: output.fileHandleForReading)
+            try send(#"{"id":1,"method":"initialize","params":{"clientInfo":{"name":"TokenBar","version":"1"}}}"#, to: input)
+            guard try reader.response(id: 1, timeoutSeconds: 8) != nil else { throw CodexRPCError.timeout("initialize") }
+            try send(#"{"method":"initialized","params":{}}"#, to: input)
+            try send(#"{"id":2,"method":"account/read","params":{}}"#, to: input)
+            let account = try reader.response(id: 2, timeoutSeconds: 4)
+            try send(#"{"id":3,"method":"account/rateLimits/read","params":{}}"#, to: input)
+            let rateResponse = try reader.response(id: 3, timeoutSeconds: 4)
+
+            result.plan = account?["result"]?["account"]?["planType"]?.string ?? result.plan
+            if let limits = rateResponse?["result"]?["rateLimits"] {
+                result.plan = limits["planType"]?.string ?? result.plan
+                result.limits = [limits["primary"], limits["secondary"]].compactMap(limit)
             }
             if result.limits.isEmpty {
                 result.status = "Codex limits unavailable"
-                result.help = "Run `codex login` to restore live limits."
+                result.help = rateResponse?["error"]?["message"]?.string ?? "Codex returned no live subscription limits."
             }
         } catch {
             result.status = "Codex limits unavailable"
-            result.help = error.localizedDescription
+            result.help = "\(error.localizedDescription) Your local token statistics remain available."
         }
         return result
+    }
+
+    private func send(_ message: String, to pipe: Pipe) throws {
+        try pipe.fileHandleForWriting.write(contentsOf: Data((message + "\n").utf8))
     }
 
     private func limit(_ value: JSONValue?) -> RateLimit? {
@@ -53,6 +57,55 @@ struct CodexLimitCollector: Sendable {
         let label = minutes == 10_080 ? "Weekly (7-day)" : minutes > 0 ? "\(minutes / 60)h window" : "Limit"
         let reset = value?["resetsAt"]?.number.map { Date(timeIntervalSince1970: $0) }
         return RateLimit(label: label, usedFraction: min(1, used / 100), resetsAt: reset)
+    }
+}
+
+enum CodexRPCError: LocalizedError {
+    case timeout(String)
+    case streamClosed
+
+    var errorDescription: String? {
+        switch self {
+        case let .timeout(method): "Codex timed out while handling \(method)."
+        case .streamClosed: "Codex closed the app-server connection."
+        }
+    }
+}
+
+struct CodexRPCReader {
+    let handle: FileHandle
+    private var buffer = Data()
+
+    init(handle: FileHandle) {
+        self.handle = handle
+    }
+
+    mutating func response(id: Int, timeoutSeconds: Int) throws -> JSONValue? {
+        let deadline = Date.now.addingTimeInterval(TimeInterval(timeoutSeconds))
+        while Date.now < deadline {
+            while let line = nextLine() {
+                guard let json = try? JSONDecoder().decode(JSONValue.self, from: line) else { continue }
+                if json["id"]?.number == Double(id) { return json }
+            }
+            let remaining = max(1, Int(deadline.timeIntervalSinceNow * 1_000))
+            var descriptor = pollfd(fd: handle.fileDescriptor, events: Int16(POLLIN), revents: 0)
+            let status = Darwin.poll(&descriptor, 1, Int32(remaining))
+            if status == 0 { break }
+            if status < 0 {
+                if errno == EINTR { continue }
+                throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
+            }
+            guard let chunk = try handle.read(upToCount: 16_384), !chunk.isEmpty else { throw CodexRPCError.streamClosed }
+            buffer.append(chunk)
+        }
+        return nil
+    }
+
+    private mutating func nextLine() -> Data? {
+        guard let newline = buffer.firstIndex(of: 0x0A) else { return nil }
+        let line = Data(buffer[..<newline])
+        buffer.removeSubrange(...newline)
+        return line
     }
 }
 
