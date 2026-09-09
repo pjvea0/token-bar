@@ -3,6 +3,22 @@ import XCTest
 @testable import TokenBar
 
 final class TranscriptScannerTests: XCTestCase {
+    func testMenuBarStylesChooseRequestedLiveLimit() {
+        let limits = [
+            RateLimit(label: "Session (5-hour)", usedFraction: 0.126, resetsAt: nil),
+            RateLimit(label: "Weekly (7-day)", usedFraction: 0.574, resetsAt: nil)
+        ]
+
+        XCTAssertEqual(MenuBarDisplayStyle.iconOnly.label(provider: .claude, limits: limits), "")
+        XCTAssertEqual(MenuBarDisplayStyle.provider.label(provider: .claude, limits: limits), "Cl")
+        XCTAssertEqual(MenuBarDisplayStyle.session.label(provider: .claude, limits: limits), "Cl 13%")
+        XCTAssertEqual(MenuBarDisplayStyle.weekly.label(provider: .claude, limits: limits), "Cl 57%")
+    }
+
+    func testMenuBarLimitStyleFallsBackToProviderWhenLimitIsUnavailable() {
+        XCTAssertEqual(MenuBarDisplayStyle.weekly.label(provider: .codex, limits: []), "Cx")
+    }
+
     func testCodexRPCReaderWaitsForMatchingResponse() throws {
         let pipe = Pipe()
         let messages = [

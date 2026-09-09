@@ -14,6 +14,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - One-command terminal build and launch workflow through `make run`.
 - Omarchy-style horizontal activity and model meters with explicit history-window labels.
 - Global `Control-Shift-Command-R` shortcut for toggling the TokenBar panel.
+- In-panel number shortcuts for direct Claude Code and Codex selection.
+- Configurable icon-only, provider, session, and weekly menu-bar display styles.
 
 ### Changed
 

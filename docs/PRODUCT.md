@@ -6,12 +6,14 @@ TokenBar follows Omarchy's agents-panel information model while using familiar m
 | --- | --- |
 | Provider hero and plan | Provider name, symbol, plan, and actionable auth/error state |
 | Subscription switch | Native segmented control when multiple providers are enabled |
+| Keyboard provider switch | While the panel is open, `1` selects Claude Code and `2` selects Codex |
 | Limits | Percentage used, progress meter, and relative reset time |
 | Token history | Seven local calendar days as relative horizontal meters; hover reveals detail |
 | Model usage | Descending relative meters; Claude covers all retained local history and Codex covers a timestamp-accurate rolling 30 days |
 | Panel sizing | Expands to fit its usage content without an internal scrolling region |
 | Refresh | Fifteen-minute background cadence plus manual action and `r` shortcut |
 | Global shortcut | `Control-Shift-Command-R` toggles the panel from any application without Accessibility permission |
+| Menu-bar readout | Persistent choice of icon only, provider abbreviation (default), session usage, or weekly usage; unavailable limits fall back to the provider abbreviation |
 | Launch | Settings provides explicit Terminal launch actions for each CLI, keeping the usage panel focused on monitoring |
 | Empty state | Icon remains visible and presents onboarding (intentional macOS adaptation) |
 | Partial failure | Working local data remains visible when live limits fail |

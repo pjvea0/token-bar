@@ -2,6 +2,40 @@ import AppKit
 import Combine
 import Foundation
 
+enum MenuBarDisplayStyle: String, CaseIterable, Identifiable, Sendable {
+    case iconOnly
+    case provider
+    case session
+    case weekly
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .iconOnly: "Icon only"
+        case .provider: "Provider"
+        case .session: "Session usage"
+        case .weekly: "Weekly usage"
+        }
+    }
+
+    func label(provider: ProviderID?, limits: [RateLimit]) -> String {
+        guard self != .iconOnly, let provider else { return "" }
+        let abbreviation = provider == .claude ? "Cl" : "Cx"
+        guard self != .provider else { return abbreviation }
+        let limit = limits.first { limit in
+            let label = limit.label.lowercased()
+            return switch self {
+            case .session: label.contains("session") || label.contains("5h") || label.contains("5-hour")
+            case .weekly: label.contains("weekly") || label.contains("7-day")
+            case .iconOnly, .provider: false
+            }
+        }
+        guard let limit else { return abbreviation }
+        return "\(abbreviation) \(Int((limit.usedFraction * 100).rounded()))%"
+    }
+}
+
 @MainActor
 final class UsageStore: ObservableObject {
     @Published var usages: [ProviderUsage] = []
@@ -12,6 +46,9 @@ final class UsageStore: ObservableObject {
     @Published var claudeEnabled = true { didSet { defaults.set(claudeEnabled, forKey: Keys.claudeEnabled) } }
     @Published var codexEnabled = true { didSet { defaults.set(codexEnabled, forKey: Keys.codexEnabled) } }
     @Published var globalShortcutAvailable = true
+    @Published var menuBarStyle: MenuBarDisplayStyle = .provider {
+        didSet { defaults.set(menuBarStyle.rawValue, forKey: Keys.menuBarStyle) }
+    }
     private let service = UsageService()
     private let defaults: UserDefaults
     private var started = false
@@ -22,13 +59,12 @@ final class UsageStore: ObservableObject {
         if defaults.object(forKey: Keys.refreshMinutes) != nil { refreshMinutes = max(1, defaults.integer(forKey: Keys.refreshMinutes)) }
         if defaults.object(forKey: Keys.claudeEnabled) != nil { claudeEnabled = defaults.bool(forKey: Keys.claudeEnabled) }
         if defaults.object(forKey: Keys.codexEnabled) != nil { codexEnabled = defaults.bool(forKey: Keys.codexEnabled) }
+        if let raw = defaults.string(forKey: Keys.menuBarStyle), let style = MenuBarDisplayStyle(rawValue: raw) { menuBarStyle = style }
     }
 
     var current: ProviderUsage? { usages.first { $0.id == selected } ?? usages.first }
     var menuLabel: String {
-        guard let current else { return "AI Usage" }
-        let percent = current.limits.first.map { " \(Int($0.usedFraction * 100))%" } ?? ""
-        return "\(current.id == .claude ? "Cl" : "Cx")\(percent)"
+        menuBarStyle.label(provider: current?.id, limits: current?.limits ?? [])
     }
 
     func start() async {
@@ -60,5 +96,6 @@ final class UsageStore: ObservableObject {
         static let refreshMinutes = "refreshMinutes"
         static let claudeEnabled = "claudeEnabled"
         static let codexEnabled = "codexEnabled"
+        static let menuBarStyle = "menuBarStyle"
     }
 }

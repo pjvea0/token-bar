@@ -16,6 +16,8 @@ The minimum deployment target is **macOS 15.0**, covering macOS 15.7.4 and futur
 - Codex plan/session/weekly limits via the public Codex app-server protocol
 - Automatic refresh every 15 minutes and manual refresh
 - Global `Control-Shift-Command-R` shortcut to toggle the usage panel
+- In-panel `1`/`2` shortcuts for switching directly to Claude Code or Codex
+- Configurable menu-bar readout: icon only, provider, live session usage, or live weekly usage
 - Clear partial-failure states: local stats survive a limits failure
 - Native Settings window with explicit Claude Code and Codex launch actions
 - Menu-bar-only app (`LSUIElement`) with no Dock icon
@@ -46,6 +48,8 @@ make clean
 Opening Xcode is optional. Run `make xcode` only when you want to use its editor or debugger.
 
 While TokenBar is running, press `Control-Shift-Command-R` from any app to open or close its panel. The shortcut uses macOS global hot-key registration and does not require Accessibility permission. Settings reports if another app has already reserved it.
+
+With the panel open, press `1` for Claude Code or `2` for Codex. These unmodified number keys are local to the open panel. The default menu-bar style shows only `Cl` or `Cx`; Settings can instead show only the icon or append the selected provider's refreshed session or weekly percentage.
 
 The generated `TokenBar.xcodeproj` is intentionally ignored. `project.yml` is the reviewable source of truth, which prevents opaque project-file merge conflicts.
 

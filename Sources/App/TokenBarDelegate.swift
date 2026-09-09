@@ -10,6 +10,7 @@ final class TokenBarDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate
     private let popover = NSPopover()
     private var statusItem: NSStatusItem?
     private var hotKey: GlobalHotKey?
+    private var keyboardMonitor: Any?
     private var refreshTask: Task<Void, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
@@ -18,11 +19,13 @@ final class TokenBarDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate
         configurePopover()
         observeMenuLabel()
         registerGlobalShortcut()
+        registerPanelShortcuts()
         refreshTask = Task { await store.start() }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         refreshTask?.cancel()
+        if let keyboardMonitor { NSEvent.removeMonitor(keyboardMonitor) }
     }
 
     @objc private func togglePopover() {
@@ -82,5 +85,21 @@ final class TokenBarDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate
             Task { @MainActor in self?.togglePopover() }
         }
         store.globalShortcutAvailable = hotKey != nil
+    }
+
+    private func registerPanelShortcuts() {
+        keyboardMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self, self.popover.isShown,
+                  event.modifierFlags.intersection([.command, .option, .control, .shift]).isEmpty else { return event }
+            let provider: ProviderID?
+            switch event.charactersIgnoringModifiers {
+            case "1": provider = .claude
+            case "2": provider = .codex
+            default: provider = nil
+            }
+            guard let provider, self.store.usages.contains(where: { $0.id == provider }) else { return event }
+            self.store.selected = provider
+            return nil
+        }
     }
 }
