@@ -140,8 +140,11 @@ struct ClaudeLimitCollector: Sendable {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard (response as? HTTPURLResponse)?.statusCode == 200,
                   let json = try? JSONDecoder().decode(JSONValue.self, from: data) else { throw URLError(.badServerResponse) }
-            result.limits = [bucket(json["five_hour"], label: "Session (5-hour)"),
-                             bucket(json["seven_day_oauth_apps"] ?? json["seven_day"], label: "Weekly (7-day)")].compactMap { $0 }
+            result.limits = parseLimits(json)
+            if result.limits.isEmpty {
+                result.status = "Claude limits unavailable"
+                result.help = "Anthropic returned no recognized subscription limits. Local token statistics remain available."
+            }
         } catch {
             result.status = "Claude limits unavailable"
             result.help = "\(error.localizedDescription) Local token statistics remain available."
@@ -149,11 +152,56 @@ struct ClaudeLimitCollector: Sendable {
         return result
     }
 
-    private func bucket(_ value: JSONValue?, label: String) -> RateLimit? {
+    func parseLimits(_ json: JSONValue) -> [RateLimit] {
+        let session = json["five_hour"]?.object.map(JSONValue.object)
+        let weekly = json["seven_day_oauth_apps"]?.object.map(JSONValue.object)
+            ?? json["seven_day"]?.object.map(JSONValue.object)
+        let scoped = json["limits"]?.array ?? []
+        let rawValues = [session?["utilization"]?.number, weekly?["utilization"]?.number]
+            + scoped.map { $0["percent"]?.number }
+        let percentScale = rawValues.compactMap { $0 }.contains { $0 >= 1 }
+        var limits = [bucket(session, label: "Session (5-hour)", percentScale: percentScale),
+                      bucket(weekly, label: "Weekly (7-day)", percentScale: percentScale)].compactMap { $0 }
+        var seenLabels = Set(limits.map(\.label))
+        for entry in scoped {
+            guard let model = entry["scope"]?["model"],
+                  let rawName = model["display_name"]?.string ?? model["id"]?.string,
+                  let raw = entry["percent"]?.number else { continue }
+            let name = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty else { continue }
+            let kind = entry["kind"]?.string ?? ""
+            let window = scopedWindow(kind)
+            let label = window.isEmpty ? name : "\(name) \(window)"
+            guard seenLabels.insert(label).inserted else { continue }
+            limits.append(RateLimit(label: label, usedFraction: normalize(raw, percentScale: percentScale),
+                                    resetsAt: resetDate(entry["resets_at"])))
+        }
+        return limits
+    }
+
+    private func bucket(_ value: JSONValue?, label: String, percentScale: Bool) -> RateLimit? {
         guard let raw = value?["utilization"]?.number else { return nil }
-        let fraction = raw >= 1 ? raw / 100 : raw
-        let reset = value?["resets_at"]?.string.flatMap(ISO8601DateFormatter().date)
-        return RateLimit(label: label, usedFraction: min(1, fraction), resetsAt: reset)
+        return RateLimit(label: label, usedFraction: normalize(raw, percentScale: percentScale),
+                         resetsAt: resetDate(value?["resets_at"]))
+    }
+
+    private func normalize(_ raw: Double, percentScale: Bool) -> Double {
+        let fraction = (percentScale || raw > 1) ? raw / 100 : raw
+        return min(1, max(0, fraction))
+    }
+
+    private func resetDate(_ value: JSONValue?) -> Date? {
+        if let string = value?.string { return ISO8601DateFormatter().date(from: string) }
+        guard let raw = value?.number else { return nil }
+        return Date(timeIntervalSince1970: raw > 10_000_000_000 ? raw / 1_000 : raw)
+    }
+
+    private func scopedWindow(_ kind: String) -> String {
+        let value = kind.lowercased()
+        if value.contains("month") { return "Monthly" }
+        if value.contains("week") || value.contains("day") { return "Weekly" }
+        if value.contains("hour") || value.contains("session") { return "Session" }
+        return ""
     }
 
     private func plan(_ tier: String?, _ subscription: String?) -> String {

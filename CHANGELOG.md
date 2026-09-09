@@ -27,6 +27,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
+- Show Claude model-scoped weekly limits returned through the current OAuth usage payload, including fallback from a null legacy bucket.
 - Read Claude Code authentication from macOS Keychain instead of assuming the Linux credential-file location.
 - Explain failed and expired Claude authentication using the authoritative `claude auth status` check.
 - Sequence Codex app-server initialization before account requests and enforce bounded RPC read timeouts.

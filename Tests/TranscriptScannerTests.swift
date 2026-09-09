@@ -48,6 +48,17 @@ final class TranscriptScannerTests: XCTestCase {
         XCTAssertEqual(credential?.subscriptionType, "max")
     }
 
+    func testClaudeLimitsIncludeFlatFallbackAndModelScopedWindows() throws {
+        let data = Data(#"{"five_hour":{"utilization":0.5,"resets_at":"2026-09-09T12:00:00Z"},"seven_day_oauth_apps":null,"seven_day":{"utilization":4.0,"resets_at":"2026-09-14T12:00:00Z"},"limits":[{"kind":"weekly_scoped","scope":{"model":{"display_name":"Fable 5"}},"percent":12.0,"resets_at":"2026-09-14T12:00:00Z"}]}"#.utf8)
+        let json = try JSONDecoder().decode(JSONValue.self, from: data)
+
+        let limits = ClaudeLimitCollector().parseLimits(json)
+
+        XCTAssertEqual(limits.map(\.label), ["Session (5-hour)", "Weekly (7-day)", "Fable 5 Weekly"])
+        XCTAssertEqual(limits.map(\.usedFraction), [0.005, 0.04, 0.12])
+        XCTAssertNotNil(limits[0].resetsAt)
+    }
+
     func testScansClaudeTranscriptWithoutDoubleCountingMessageIDs() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

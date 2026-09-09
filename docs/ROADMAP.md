@@ -4,7 +4,7 @@
 
 - Add cooperative cancellation around a running Codex child process.
 - Add cache envelopes so large histories are rescanned only when sources change.
-- Add fixtures for current Claude scoped limits and Codex RPC error responses.
+- Add fixtures for Codex RPC error responses.
 - Add accessibility and UI tests, application icon, signing, notarization, and release automation.
 
 ## Release 0.2 — Omarchy parity

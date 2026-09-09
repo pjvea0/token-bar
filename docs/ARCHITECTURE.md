@@ -26,6 +26,8 @@ Transcript files are newline-delimited JSON and treated as an append-only, exter
 
 Calendar-day aggregation uses the user's current calendar and timezone. The seven-day series always contains seven buckets, including zero-use days. Claude model and summary totals cover every retained local transcript event. Codex totals use each event's timestamp to enforce a rolling 30-day window; file modification dates do not determine inclusion. Future-dated events are excluded. These local history windows are independent of provider-reported quota cycles.
 
+Claude limit collection accepts both the legacy flat session/weekly buckets and current model-scoped entries in the OAuth usage payload. A null model-specific flat bucket does not mask the general weekly fallback. Percentage normalization is chosen across the whole payload so every returned limit uses one scale.
+
 ## Concurrency
 
 `UsageStore` is isolated to the main actor. `UsageService` is an actor so filesystem scans and provider requests cannot overlap internally. Provider result types cross that boundary as `Sendable` values. A refresh guard prevents duplicate user/timer requests.
