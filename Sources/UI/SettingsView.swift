@@ -74,7 +74,6 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .frame(width: 440, height: 650)
         .padding()
-        .preferredColorScheme(store.appearance.colorScheme)
     }
 }
 

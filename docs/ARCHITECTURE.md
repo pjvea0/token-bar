@@ -20,7 +20,7 @@ The status item uses an `NSPopover` whose content is the existing SwiftUI `Usage
 
 An AppKit local event monitor handles unmodified `1` and `2` only while the popover is visible. It never observes events delivered to other applications. Menu-bar display style is a persisted presentation preference in `UsageStore`; fresh installations default to icon-only, and labels are derived from each refreshed normalized limit rather than cached separately.
 
-Appearance is also a persisted `UsageStore` preference. SwiftUI's preferred color scheme covers the panel, nested information popover, and Settings content; the application delegate applies the matching `NSAppearance` to the hosted popover so native chrome changes with the override. A nil appearance preserves normal macOS System behavior.
+Appearance is also a persisted `UsageStore` preference. The application delegate is the single appearance authority: it applies the selected `NSAppearance` to the application, hosted content, and realized popover window. It reapplies that value immediately before and after presentation because `NSPopover` creates or reuses its window lazily. A nil appearance preserves normal macOS System behavior. Views inherit this effective appearance rather than forcing an independent SwiftUI color scheme, preventing mismatched text and surfaces.
 
 ## Collection semantics
 

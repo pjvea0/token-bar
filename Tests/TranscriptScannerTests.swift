@@ -6,9 +6,6 @@ final class TranscriptScannerTests: XCTestCase {
     func testFreshInstallAppearanceFollowsSystem() {
         XCTAssertEqual(AppAppearance.initial, .system)
         XCTAssertEqual(AppAppearance.allCases.map(\.rawValue), ["system", "light", "dark"])
-        XCTAssertNil(AppAppearance.system.colorScheme)
-        XCTAssertEqual(AppAppearance.light.colorScheme, .light)
-        XCTAssertEqual(AppAppearance.dark.colorScheme, .dark)
     }
 
     func testFreshInstallMenuBarStyleIsIconOnly() {

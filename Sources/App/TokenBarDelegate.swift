@@ -40,8 +40,10 @@ final class TokenBarDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate
 
     private func showPopover() {
         guard let button = statusItem?.button else { return }
+        applyAppearance(store.appearance)
         NSApp.activate(ignoringOtherApps: true)
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        applyAppearance(store.appearance)
         button.highlight(true)
     }
 
@@ -94,6 +96,8 @@ final class TokenBarDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate
         }
         NSApp.appearance = nativeAppearance
         popover.contentViewController?.view.appearance = nativeAppearance
+        popover.contentViewController?.view.window?.appearance = nativeAppearance
+        popover.contentViewController?.view.needsDisplay = true
     }
 
     private func updateMenuLabel() {
