@@ -5,7 +5,7 @@
 ```text
 CLI-owned data             Provider adapters                Normalized state          Native UI
 ~/.claude/projects  ─┐     TranscriptScanner ─┐
-~/.codex/sessions   ─┴──▶  LimitCollectors   ─┴──▶ UsageService ─▶ UsageStore ─▶ MenuBarExtra
+~/.codex/sessions   ─┴──▶  LimitCollectors   ─┴──▶ UsageService ─▶ UsageStore ─▶ Status item + popover
 Anthropic endpoint  ─────▶ Claude adapter
 codex app-server    ─────▶ Codex adapter
 ```
@@ -14,7 +14,9 @@ The central design rule is normalization before presentation. Every provider pro
 
 ## Layers
 
-`Domain` contains `Sendable`, `Codable` value types. `Infrastructure` owns blocking and asynchronous I/O behind the `UsageService` actor. `App` owns main-actor observable state and refresh scheduling. `UI` renders normalized state and emits intent.
+`Domain` contains `Sendable`, `Codable` value types. `Infrastructure` owns blocking and asynchronous I/O behind the `UsageService` actor. `App` owns main-actor observable state, refresh scheduling, the AppKit status item, and global shortcut registration. `UI` renders normalized state and emits intent.
+
+The status item uses an `NSPopover` whose content is the existing SwiftUI `UsagePanel`. AppKit owns this thin shell because SwiftUI's public `MenuBarExtra` API can control insertion but cannot programmatically present its window. The Carbon hot-key API provides system-wide activation without keyboard monitoring or Accessibility permission.
 
 ## Collection semantics
 

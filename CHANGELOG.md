@@ -13,6 +13,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - XCTest coverage, XcodeGen project definition, and human/agent maintenance documentation.
 - One-command terminal build and launch workflow through `make run`.
 - Omarchy-style horizontal activity and model meters with explicit history-window labels.
+- Global `Control-Shift-Command-R` shortcut for toggling the TokenBar panel.
 
 ### Changed
 

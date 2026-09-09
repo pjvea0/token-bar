@@ -10,6 +10,7 @@ TokenBar follows Omarchy's agents-panel information model while using familiar m
 | Token history | Seven local calendar days as relative horizontal meters; hover reveals detail |
 | Model usage | Descending relative meters; Claude covers all retained local history and Codex covers a timestamp-accurate rolling 30 days |
 | Refresh | Fifteen-minute background cadence plus manual action and `r` shortcut |
+| Global shortcut | `Control-Shift-Command-R` toggles the panel from any application without Accessibility permission |
 | Launch | Settings provides explicit Terminal launch actions for each CLI, keeping the usage panel focused on monitoring |
 | Empty state | Icon remains visible and presents onboarding (intentional macOS adaptation) |
 | Partial failure | Working local data remains visible when live limits fail |

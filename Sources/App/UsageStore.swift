@@ -11,6 +11,7 @@ final class UsageStore: ObservableObject {
     @Published var refreshMinutes = 15 { didSet { defaults.set(refreshMinutes, forKey: Keys.refreshMinutes) } }
     @Published var claudeEnabled = true { didSet { defaults.set(claudeEnabled, forKey: Keys.claudeEnabled) } }
     @Published var codexEnabled = true { didSet { defaults.set(codexEnabled, forKey: Keys.codexEnabled) } }
+    @Published var globalShortcutAvailable = true
     private let service = UsageService()
     private let defaults: UserDefaults
     private var started = false
