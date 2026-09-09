@@ -95,8 +95,14 @@ struct CodexRPCReader {
                 if errno == EINTR { continue }
                 throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
             }
-            guard let chunk = try handle.read(upToCount: 16_384), !chunk.isEmpty else { throw CodexRPCError.streamClosed }
-            buffer.append(chunk)
+            var bytes = [UInt8](repeating: 0, count: 16_384)
+            let byteCount = Darwin.read(handle.fileDescriptor, &bytes, bytes.count)
+            if byteCount == 0 { throw CodexRPCError.streamClosed }
+            if byteCount < 0 {
+                if errno == EINTR || errno == EAGAIN { continue }
+                throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
+            }
+            buffer.append(contentsOf: bytes.prefix(byteCount))
         }
         return nil
     }

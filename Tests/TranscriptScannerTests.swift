@@ -11,7 +11,7 @@ final class TranscriptScannerTests: XCTestCase {
             #"{"id":2,"result":{"account":{"planType":"pro"}}}"#
         ].joined(separator: "\n") + "\n"
         try pipe.fileHandleForWriting.write(contentsOf: Data(messages.utf8))
-        pipe.fileHandleForWriting.closeFile()
+        defer { pipe.fileHandleForWriting.closeFile() }
         var reader = CodexRPCReader(handle: pipe.fileHandleForReading)
 
         let initialize = try reader.response(id: 1, timeoutSeconds: 1)

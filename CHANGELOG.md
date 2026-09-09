@@ -19,3 +19,4 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Explain failed and expired Claude authentication using the authoritative `claude auth status` check.
 - Sequence Codex app-server initialization before account requests and enforce bounded RPC read timeouts.
 - Wait for the previous development process to exit before `make run` relaunches TokenBar.
+- Avoid blocking for a full buffer when Codex keeps its app-server output stream open.
