@@ -12,10 +12,20 @@ struct SettingsView: View {
                 Stepper("Every \(store.refreshMinutes) minutes", value: $store.refreshMinutes, in: 1...60)
                 Button("Refresh Now") { Task { await store.refresh() } }
             }
+            Section("Agents") {
+                Button { store.launch(.claude) } label: {
+                    Label("Open Claude Code in Terminal", systemImage: "terminal")
+                }
+                Button { store.launch(.codex) } label: {
+                    Label("Open Codex in Terminal", systemImage: "terminal")
+                }
+                Text("Agent launch actions open a new command in Terminal.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Section("Privacy") {
                 Text("TokenBar reads local CLI transcripts. Claude credentials are read only to request account limits directly from Anthropic; credentials are never stored by TokenBar.")
                     .font(.caption).foregroundStyle(.secondary)
             }
-        }.formStyle(.grouped).frame(width: 440, height: 330).padding()
+        }.formStyle(.grouped).frame(width: 440, height: 430).padding()
     }
 }

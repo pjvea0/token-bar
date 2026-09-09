@@ -5,20 +5,11 @@ struct UsagePanel: View {
     @ObservedObject var store: UsageStore
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 14) {
             header
             if store.usages.count > 1 { providerPicker }
             if let usage = store.current { providerContent(usage) } else { emptyState }
-            Divider()
-            HStack {
-                Button("Launch Agent", systemImage: "terminal", action: store.launchCurrent)
-                Spacer()
-                SettingsLink { Image(systemName: "gearshape") }.buttonStyle(.plain)
-                Button { Task { await store.refresh() } } label: {
-                    Image(systemName: "arrow.clockwise").rotationEffect(.degrees(store.isRefreshing ? 360 : 0))
-                }.buttonStyle(.plain).disabled(store.isRefreshing).keyboardShortcut("r", modifiers: [])
-                Button { NSApplication.shared.terminate(nil) } label: { Image(systemName: "power") }.buttonStyle(.plain)
-            }
+            footer
         }
         .padding(18)
         .frame(width: 390)
@@ -32,7 +23,39 @@ struct UsagePanel: View {
                 Text(store.current?.plan.nonEmpty ?? "AI usage at a glance").font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
-            if store.isRefreshing { ProgressView().controlSize(.small) }
+            if store.isRefreshing {
+                ProgressView().controlSize(.small)
+            } else {
+                Button { Task { await store.refresh() } } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut("r", modifiers: [])
+                .help("Refresh usage")
+            }
+        }
+    }
+
+    private var footer: some View {
+        VStack(spacing: 10) {
+            Divider()
+            HStack {
+                SettingsLink { Image(systemName: "gearshape") }
+                    .buttonStyle(.plain)
+                    .help("Settings")
+                Spacer()
+                if let updatedAt = store.current?.updatedAt {
+                    Text("Updated \(updatedAt, style: .relative)")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+                Spacer()
+                Button { NSApplication.shared.terminate(nil) } label: {
+                    Image(systemName: "power")
+                }
+                .buttonStyle(.plain)
+                .help("Quit TokenBar")
+            }
         }
     }
 
@@ -44,7 +67,7 @@ struct UsagePanel: View {
 
     @ViewBuilder private func providerContent(_ usage: ProviderUsage) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 16) {
                 if let status = usage.status {
                     Label { VStack(alignment: .leading) { Text(status).font(.callout.bold()); Text(usage.help ?? "").font(.caption) } }
                     icon: { Image(systemName: "exclamationmark.triangle") }.foregroundStyle(.orange)

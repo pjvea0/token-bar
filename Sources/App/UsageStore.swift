@@ -49,8 +49,7 @@ final class UsageStore: ObservableObject {
         isRefreshing = false
     }
 
-    func launchCurrent() {
-        guard let provider = current?.id else { return }
+    func launch(_ provider: ProviderID) {
         let script = "tell application \"Terminal\" to do script \"\(provider.command)\""
         if let appleScript = NSAppleScript(source: script) { var error: NSDictionary?; appleScript.executeAndReturnError(&error) }
     }

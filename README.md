@@ -1,6 +1,6 @@
 # TokenBar
 
-TokenBar is a native macOS menu-bar dashboard for Claude Code and OpenAI Codex usage. It adapts Omarchy's agents-panel feature set to macOS conventions: a persistent menu-bar item opens a compact SwiftUI popover with subscription limits, reset times, seven-day activity meters, model totals, detailed token splits, refresh, settings, and agent launch actions.
+TokenBar is a native macOS menu-bar dashboard for Claude Code and OpenAI Codex usage. It adapts Omarchy's agents-panel feature set to macOS conventions: a persistent menu-bar item opens a compact SwiftUI popover with subscription limits, reset times, seven-day activity meters, model totals, detailed token splits, and refresh controls. Settings contains configuration and agent launch actions.
 
 The minimum deployment target is **macOS 15.0**, covering macOS 15.7.4 and future macOS versions through normal backward-compatible builds.
 
@@ -16,7 +16,7 @@ The minimum deployment target is **macOS 15.0**, covering macOS 15.7.4 and futur
 - Codex plan/session/weekly limits via the public Codex app-server protocol
 - Automatic refresh every 15 minutes and manual refresh
 - Clear partial-failure states: local stats survive a limits failure
-- Native Settings window and one-click agent launch in Terminal
+- Native Settings window with explicit Claude Code and Codex launch actions
 - Menu-bar-only app (`LSUIElement`) with no Dock icon
 
 TokenBar intentionally keeps its icon visible before first usage so macOS users retain an onboarding and settings entry point. Omarchy hides its widget until usage exists; this is the one deliberate platform-paradigm difference.
