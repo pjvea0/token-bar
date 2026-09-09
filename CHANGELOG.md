@@ -19,6 +19,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Codex transcript totals now use event timestamps for an accurate rolling 30-day window; Claude totals continue to cover all retained local history.
 - Local transcript statistics are explicitly distinguished from provider-reported limit cycles.
 - Agent launch actions now live in Settings, while the usage panel uses a quieter footer and header refresh control.
+- Detailed local-history totals and quota-cycle clarification now live in an on-demand information popover.
 
 ### Fixed
 

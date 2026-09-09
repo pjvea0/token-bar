@@ -50,12 +50,6 @@ enum UsageHistoryScope: Codable, Equatable, Sendable {
         }
     }
 
-    var summaryPrefix: String {
-        switch self {
-        case .allLocalHistory: "Local history"
-        case .rollingDays(let days): "Last \(days) days"
-        }
-    }
 }
 
 struct RateLimit: Codable, Identifiable, Equatable, Sendable {

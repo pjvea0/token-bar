@@ -43,6 +43,9 @@ struct UsagePanel: View {
                 SettingsLink { Image(systemName: "gearshape") }
                     .buttonStyle(.plain)
                     .help("Settings")
+                if let usage = store.current {
+                    UsageInfoButton(usage: usage)
+                }
                 Spacer()
                 if let updatedAt = store.current?.updatedAt {
                     Text("Updated \(updatedAt, style: .relative)")
@@ -78,11 +81,6 @@ struct UsagePanel: View {
                     DayRows(days: usage.days)
                     SectionTitle("Tokens by model", scope: usage.historyScope.title)
                     ModelRows(models: usage.models)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("\(usage.historyScope.summaryPrefix): \(usage.totalTokens.formatted()) tokens · \(usage.totalPrompts.formatted()) prompts · \(usage.totalSessions.formatted()) sessions · \(usage.activeDays.formatted()) active days")
-                        Text("Local transcript totals are separate from provider limit-cycle usage.")
-                    }
-                    .font(.caption).foregroundStyle(.secondary)
                 }
             }
         }.frame(maxHeight: 550)
@@ -91,6 +89,48 @@ struct UsagePanel: View {
     private var emptyState: some View {
         ContentUnavailableView("No usage yet", systemImage: "sparkles", description: Text("Sign in to Claude Code or Codex and complete a session, then refresh."))
             .frame(height: 220)
+    }
+}
+
+private struct UsageInfoButton: View {
+    let usage: ProviderUsage
+    @State private var isPresented = false
+
+    var body: some View {
+        Button { isPresented.toggle() } label: {
+            Image(systemName: "info.circle")
+        }
+        .buttonStyle(.plain)
+        .help("About usage totals")
+        .popover(isPresented: $isPresented, arrowEdge: .bottom) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Local usage totals").font(.headline)
+                Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 7) {
+                    infoRow("History window", usage.historyScope.title)
+                    infoRow("Tokens", usage.totalTokens.formatted())
+                    infoRow("Prompts", usage.totalPrompts.formatted())
+                    infoRow("Sessions", usage.totalSessions.formatted())
+                    infoRow("Active days", usage.activeDays.formatted())
+                }
+                Divider()
+                Text("These totals come from local CLI transcripts. They are separate from the provider-reported session and weekly limit cycles shown above.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(16)
+            .frame(width: 300)
+        }
+        .accessibilityLabel("About usage totals")
+    }
+
+    @ViewBuilder
+    private func infoRow(_ label: String, _ value: String) -> some View {
+        GridRow {
+            Text(label).foregroundStyle(.secondary)
+            Text(value).monospacedDigit()
+        }
+        .font(.callout)
     }
 }
 
