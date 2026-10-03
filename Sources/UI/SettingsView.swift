@@ -14,6 +14,16 @@ struct SettingsView: View {
                 Stepper("Every \(store.refreshMinutes) minutes", value: $store.refreshMinutes, in: 1...60)
                 Button("Refresh Now") { Task { await store.refresh() } }
             }
+            Section("Notifications") {
+                ForEach($store.alertRules) { $rule in AlertRuleRow(rule: $rule) }
+                Button("Send Test Notification") { Task { await store.sendTestNotification() } }
+                if store.notificationsDenied {
+                    Label("Notifications are turned off for TokenBar in System Settings → Notifications.", systemImage: "bell.slash")
+                        .font(.caption).foregroundStyle(.red)
+                }
+                Text("Each threshold alerts once per limit window. Limits are checked on every refresh, so alerts can arrive up to one refresh interval late.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Section("Appearance") {
                 Picker("Color scheme", selection: $store.appearance) {
                     ForEach(AppAppearance.allCases) { appearance in
@@ -72,8 +82,50 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 440, height: 650)
+        .frame(width: 460, height: 720)
         .padding()
+    }
+}
+
+private struct AlertRuleRow: View {
+    @Binding var rule: AlertRule
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Toggle("\(rule.provider.displayName) · \(rule.window.title)", isOn: $rule.enabled)
+            if rule.enabled {
+                HStack(spacing: 10) {
+                    ForEach(rule.thresholds.indices, id: \.self) { index in
+                        HStack(spacing: 2) {
+                            Text("\(rule.thresholds[index])%").monospacedDigit().frame(minWidth: 38, alignment: .trailing)
+                            Stepper("Threshold", value: threshold(at: index), in: 5...100, step: 5).labelsHidden()
+                            if rule.thresholds.count > 1 {
+                                Button { rule.thresholds.remove(at: index) } label: { Image(systemName: "minus.circle") }
+                                    .buttonStyle(.borderless)
+                                    .help("Remove threshold")
+                            }
+                        }
+                    }
+                    if rule.thresholds.count < AlertRule.maximumThresholds {
+                        Button { rule.thresholds.append(min(100, (rule.thresholds.max() ?? 70) + 10)) } label: {
+                            Image(systemName: "plus.circle")
+                        }
+                        .buttonStyle(.borderless)
+                        .help("Add threshold")
+                    }
+                }
+                .font(.callout)
+            }
+        }
+    }
+
+    private func threshold(at index: Int) -> Binding<Int> {
+        Binding {
+            rule.thresholds.indices.contains(index) ? rule.thresholds[index] : 0
+        } set: { value in
+            guard rule.thresholds.indices.contains(index) else { return }
+            rule.thresholds[index] = min(100, max(5, value))
+        }
     }
 }
 

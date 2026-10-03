@@ -22,6 +22,8 @@ An AppKit local event monitor handles unmodified `1` and `2` only while the popo
 
 Appearance is also a persisted `UsageStore` preference. The application delegate is the single appearance authority: it applies the selected `NSAppearance` to the application, hosted content, and realized popover window. It reapplies that value immediately before and after presentation because `NSPopover` creates or reuses its window lazily. A nil appearance preserves normal macOS System behavior. Views inherit this effective appearance rather than forcing an independent SwiftUI color scheme, preventing mismatched text and surfaces.
 
+Limit notifications are evaluated by the pure `LimitAlertEvaluator` after each refresh. A fired key combines provider, limit label, threshold, and the reset time rounded to ten minutes, so each threshold alerts once per quota cycle; keys whose reset has passed are pruned, and limits without a reset time re-arm when usage falls below the threshold. Rules and fired keys persist in `UserDefaults`. `UsageNotifier` wraps `UNUserNotificationCenter` and requests permission only when a rule is first enabled. The Makefile ad-hoc signs builds because macOS refuses notifications from bundles without a valid signature.
+
 ## Collection semantics
 
 Transcript files are newline-delimited JSON and treated as an append-only, externally controlled format. Scans skip malformed and irrelevant lines. Claude messages deduplicate by message ID. Codex token snapshots use `last_token_usage`, not cumulative session usage; cached input is subtracted from input before categories are summed.

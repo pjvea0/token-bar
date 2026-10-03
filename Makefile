@@ -2,6 +2,9 @@
 .PHONY: help bootstrap build run launch stop test clean xcode
 
 DERIVED_DATA ?= $(CURDIR)/.build/DerivedData
+# Ad-hoc signing gives the bundle a valid identity, which macOS requires before it delivers
+# notifications; it needs no Apple developer account.
+SIGNING := CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=
 APP_PATH := $(DERIVED_DATA)/Build/Products/Debug/TokenBar.app
 
 help:
@@ -17,7 +20,7 @@ bootstrap:
 	@xcodegen generate
 
 build: bootstrap
-	@xcodebuild -quiet -project TokenBar.xcodeproj -scheme TokenBar -configuration Debug -destination 'platform=macOS' -derivedDataPath '$(DERIVED_DATA)' CODE_SIGNING_ALLOWED=NO build
+	@xcodebuild -quiet -project TokenBar.xcodeproj -scheme TokenBar -configuration Debug -destination 'platform=macOS' -derivedDataPath '$(DERIVED_DATA)' $(SIGNING) build
 	@echo "Built $(APP_PATH)"
 
 run: build
@@ -39,7 +42,7 @@ stop:
 	fi
 
 test: bootstrap
-	@xcodebuild -quiet -project TokenBar.xcodeproj -scheme TokenBar -configuration Debug -destination 'platform=macOS' -derivedDataPath '$(DERIVED_DATA)' CODE_SIGNING_ALLOWED=NO test
+	@xcodebuild -quiet -project TokenBar.xcodeproj -scheme TokenBar -configuration Debug -destination 'platform=macOS' -derivedDataPath '$(DERIVED_DATA)' $(SIGNING) test
 
 clean:
 	@xcodebuild -quiet -project TokenBar.xcodeproj -scheme TokenBar -derivedDataPath '$(DERIVED_DATA)' clean

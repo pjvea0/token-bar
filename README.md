@@ -28,7 +28,7 @@ brew install xcodegen
 make run
 ```
 
-`make run` performs the complete workflow: it generates `TokenBar.xcodeproj`, builds into `.build/DerivedData`, stops an older development instance, and launches the new build. Look for the sparkle icon in the menu bar.
+`make run` performs the complete workflow: it generates `TokenBar.xcodeproj`, builds an ad-hoc signed app into `.build/DerivedData` (no Apple developer account needed; macOS requires a valid signature to deliver notifications), stops an older development instance, and launches the new build. Look for the sparkle icon in the menu bar.
 
 Opening Xcode is optional. The first Claude refresh may display a macOS prompt for access to the `Claude Code-credentials` Keychain item; approve it so TokenBar can request live limits.
 
@@ -58,6 +58,12 @@ Settings → Menu Bar provides four persistent styles:
 | Weekly usage | `Cx 42%` | Shows the refreshed weekly limit |
 
 If a selected live limit is unavailable, TokenBar falls back to the provider abbreviation rather than displaying stale or invented data.
+
+## Limit notifications
+
+Settings → Notifications has one rule per provider and window: Claude Code Session, Claude Code Weekly, Codex Session, and Codex Weekly. Each rule can hold up to three thresholds (5–100% in 5% steps; 80% and 95% are suggested). Rules are off by default, and macOS asks for notification permission the first time you enable one.
+
+Each threshold notifies once per quota window and re-arms after the limit resets. If a refresh jumps past several thresholds at once, only the highest is announced. Limits are checked on every refresh, so an alert can arrive up to one refresh interval after the crossing. Use **Send Test Notification** to confirm delivery.
 
 ## Appearance
 
