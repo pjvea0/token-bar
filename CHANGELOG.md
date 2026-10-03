@@ -19,6 +19,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - System-following appearance with persistent Light and Dark overrides.
 - Claude limits recover from expired or rejected tokens by letting the Claude Code CLI renew its own login.
 - Configurable limit notifications per provider and window, with up to three thresholds each.
+- Local usage history: daily token totals backfilled from transcripts and limit utilization samples, kept after transcripts are pruned.
 
 ### Changed
 

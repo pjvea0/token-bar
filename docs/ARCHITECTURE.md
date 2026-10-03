@@ -32,6 +32,10 @@ Calendar-day aggregation uses the user's current calendar and timezone. The seve
 
 Claude limit collection accepts both the legacy flat session/weekly buckets and current model-scoped entries in the OAuth usage payload. A null model-specific flat bucket does not mask the general weekly fallback. Percentage normalization is chosen across the whole payload so every returned limit uses one scale.
 
+## Usage history
+
+`HistoryStore`, owned by the `UsageService` actor, records two credential-free datasets under Application Support (ADR 0005). `TranscriptScanner.scanWithHistory` returns per-day, per-model totals for every retained event, ignoring the Codex 30-day summary window, and each refresh merges them into `daily.json` by field-wise maximum. Because a day's transcript totals only grow until the CLI prunes files, the maximum preserves archived days without double-counting rescans. Limit observations are appended to `limits.jsonl` only when utilization moves by half a percentage point, the reset cycle changes, or an hour passes. Day keys use the current calendar and timezone; queries return one entry per day in the range, including zero-use days. Malformed log lines are skipped.
+
 ## Concurrency
 
 `UsageStore` is isolated to the main actor. `UsageService` is an actor so filesystem scans and provider requests cannot overlap internally. Provider result types cross that boundary as `Sendable` values. A refresh guard prevents duplicate user/timer requests.

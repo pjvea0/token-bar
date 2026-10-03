@@ -163,6 +163,8 @@ TokenBar is local-first and has no server. It reads token metadata from:
 
 For live limits, TokenBar reads Claude Code's OAuth credential from macOS Keychain, with the CLI credential file as a compatibility fallback, and sends it only to Anthropic's usage endpoint. Codex credentials stay inside the locally launched `codex app-server` process.
 
+TokenBar keeps its own usage history in `~/Library/Application Support/TokenBar/History/`: `daily.json` holds per-day, per-model token and prompt counts, and `limits.jsonl` holds limit percentages with their reset times. These files contain only numbers, dates, model names, and limit labels. Daily totals are merged by taking the larger value, so history survives after Claude Code prunes old transcripts. Settings → Privacy can clear it.
+
 TokenBar does not render or persist prompt and response content. Credentials, raw provider responses, and transcript contents are never logged, copied, synchronized, or stored by TokenBar. App Sandbox is disabled solely because the app must read CLI-owned files outside its container. See the [security policy](docs/SECURITY.md) for the complete boundary.
 
 ## Development

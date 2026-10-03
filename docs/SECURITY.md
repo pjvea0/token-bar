@@ -17,6 +17,10 @@ Do not open a public issue containing credentials, transcripts, or account respo
 - Treat transcript and endpoint JSON as untrusted input.
 - Review dependency additions for necessity; the current application has no third-party runtime dependencies.
 
+## Persisted history
+
+TokenBar writes normalized history to `~/Library/Application Support/TokenBar/History/`: per-day, per-model token and prompt counts, per-day session counts, and limit utilization samples with labels and reset times. It never writes prompts, responses, file paths, session identifiers, account identifiers, or credentials there. Users can delete it from Settings.
+
 ## Known constraints
 
 App Sandbox is disabled because CLI data resides outside TokenBar's container. Distribution therefore requires Developer ID signing/notarization rather than a default sandboxed Mac App Store path unless a future explicit file-access design changes this boundary.
