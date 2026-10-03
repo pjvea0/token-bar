@@ -224,7 +224,7 @@ struct ClaudeLimitCollector: Sendable {
     }
 
     private func resetDate(_ value: JSONValue?) -> Date? {
-        if let string = value?.string { return ISO8601DateFormatter().date(from: string) }
+        if let string = value?.string { return parseISO8601(string) }
         guard let raw = value?.number else { return nil }
         return Date(timeIntervalSince1970: raw > 10_000_000_000 ? raw / 1_000 : raw)
     }
@@ -248,4 +248,11 @@ func executable(named name: String) -> URL? {
     let paths = (ProcessInfo.processInfo.environment["PATH"] ?? "").split(separator: ":").map(String.init)
         + ["/opt/homebrew/bin", "/usr/local/bin", "\(home)/.local/bin", "\(home)/.npm-global/bin"]
     return paths.map { URL(fileURLWithPath: $0).appendingPathComponent(name) }.first { FileManager.default.isExecutableFile(atPath: $0.path) }
+}
+
+/// Anthropic reports reset times with fractional seconds, which the default ISO 8601 formatter rejects.
+func parseISO8601(_ string: String) -> Date? {
+    let fractional = ISO8601DateFormatter()
+    fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return fractional.date(from: string) ?? ISO8601DateFormatter().date(from: string)
 }

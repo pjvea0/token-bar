@@ -28,6 +28,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 
 - A stale `~/.claude/.credentials.json` no longer hides a fresher Keychain login.
+- Claude reset times reported with fractional seconds are parsed, so reset countdowns and per-cycle alerts work.
 - Desktop-app-only users now see that the Claude Code CLI is required for live limits instead of a generic auth banner.
 
 ### Changed

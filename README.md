@@ -98,7 +98,7 @@ For Claude Code, confirm the CLI is authenticated:
 claude auth status
 ```
 
-If necessary, run `claude auth login`. Claude Code's access tokens are short-lived and only the CLI may renew them, so when TokenBar finds an expired token (or Anthropic rejects one) it briefly runs `claude auth status` to let the CLI refresh its own login, then rereads the Keychain. TokenBar never writes to the Keychain or `~/.claude`.
+If necessary, run `claude auth login`. Claude Code's access tokens are short-lived and only the CLI may renew them, so when TokenBar finds an expired token (or Anthropic rejects one) it briefly runs `claude auth status` (using `claude` on PATH, or else the Claude Code build bundled with the Claude desktop app) to let the CLI refresh its own login, then rereads the Keychain. TokenBar never writes to the Keychain or `~/.claude`.
 
 If you use Claude Code only inside the Claude desktop app, TokenBar can still read your local transcripts, but the desktop app keeps its sign-in private. Install the Claude Code CLI and run `claude auth login` once to enable live limits. For Codex, run `codex login` if the app reports that live limits are unavailable. Starting either CLI from Settings opens it in Terminal.
 

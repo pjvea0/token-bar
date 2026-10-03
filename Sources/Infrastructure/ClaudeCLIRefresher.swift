@@ -11,10 +11,24 @@ protocol ClaudeTokenRefreshing: Sendable {
 struct ClaudeCLIRefresher: ClaudeTokenRefreshing {
     var timeoutSeconds: Double = 15
 
-    var isCLIInstalled: Bool { executable(named: "claude") != nil }
+    var isCLIInstalled: Bool { Self.cliExecutable() != nil }
+
+    /// Prefers a `claude` on PATH, then the Claude Code build bundled with the Claude desktop app,
+    /// which shares the same Keychain login.
+    static func cliExecutable(home: URL = FileManager.default.homeDirectoryForCurrentUser) -> URL? {
+        if let installed = executable(named: "claude") { return installed }
+        let bundles = home.appendingPathComponent("Library/Application Support/Claude/claude-code")
+        let versions = (try? FileManager.default.contentsOfDirectory(at: bundles, includingPropertiesForKeys: nil)) ?? []
+        let candidates = versions.flatMap { version in
+            ((try? FileManager.default.contentsOfDirectory(at: version, includingPropertiesForKeys: nil)) ?? [])
+                .map { $0.appendingPathComponent("claude.app/Contents/MacOS/claude") }
+        }
+        return candidates.filter { FileManager.default.isExecutableFile(atPath: $0.path) }
+            .max { $0.path.compare($1.path, options: .numeric) == .orderedAscending }
+    }
 
     func refresh() async {
-        guard let executable = executable(named: "claude") else { return }
+        guard let executable = Self.cliExecutable() else { return }
         let process = Process()
         process.executableURL = executable
         process.arguments = ["auth", "status"]

@@ -11,7 +11,7 @@ TokenBar could refresh the token itself, but refresh tokens rotate: a refresh by
 
 ## Decision
 
-When the freshest available credential is expired, or the usage endpoint answers 401, TokenBar runs `claude auth status` once (stdin closed, output discarded, 15-second limit), then rereads the credential. The CLI performs and persists any refresh. If no usable credential results, TokenBar shows an actionable status with a button that opens Claude Code in Terminal.
+When the freshest available credential is expired, or the usage endpoint answers 401, TokenBar runs `claude auth status` once, using `claude` on PATH or else the newest Claude Code build bundled with the Claude desktop app (which shares the Keychain login), (stdin closed, output discarded, 15-second limit), then rereads the credential. The CLI performs and persists any refresh. If no usable credential results, TokenBar shows an actionable status with a button that opens Claude Code in Terminal.
 
 Credential sources are both read and the one with the latest expiry wins, so a leftover credential file cannot mask the Keychain.
 

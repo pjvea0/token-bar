@@ -76,6 +76,13 @@ final class ClaudeAuthTests: XCTestCase {
         XCTAssertEqual(refresher.calls.value, 0)
     }
 
+    func testParsesResetTimesWithFractionalSeconds() throws {
+        let json = try JSONDecoder().decode(JSONValue.self, from: Data(#"{"five_hour":{"utilization":10,"resets_at":"2026-10-03T14:00:00.512345+00:00"}}"#.utf8))
+        let limit = ClaudeLimitCollector().parseLimits(json).first
+        let expected = ISO8601DateFormatter().date(from: "2026-10-03T14:00:00Z")!.timeIntervalSince1970 + 0.512345
+        XCTAssertEqual(try XCTUnwrap(limit?.resetsAt).timeIntervalSince1970, expected, accuracy: 0.001)
+    }
+
     private static let emptyUsage = ProviderUsage(id: .claude, plan: "", limits: [], days: [], models: [],
                                                   historyScope: .allLocalHistory, totalPrompts: 0, totalSessions: 0,
                                                   activeDays: 0, updatedAt: .now, status: nil, help: nil)
@@ -112,5 +119,22 @@ private struct StubRefresher: ClaudeTokenRefreshing {
     func refresh() async {
         calls.increment()
         onRefresh()
+    }
+}
+
+final class ClaudeCLILocatorTests: XCTestCase {
+    func testFindsNewestDesktopBundledCLI() throws {
+        let home = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: home) }
+        for version in ["2.1.9", "2.1.286"] {
+            let binary = home.appendingPathComponent("Library/Application Support/Claude/claude-code/\(version)/abc/claude.app/Contents/MacOS/claude")
+            try FileManager.default.createDirectory(at: binary.deletingLastPathComponent(), withIntermediateDirectories: true)
+            FileManager.default.createFile(atPath: binary.path, contents: Data(), attributes: [.posixPermissions: 0o755])
+        }
+        let found = ClaudeCLIRefresher.cliExecutable(home: home)
+        // A `claude` on PATH takes precedence on machines that have one installed.
+        if executable(named: "claude") == nil {
+            XCTAssertTrue(found?.path.contains("/2.1.286/") ?? false)
+        }
     }
 }
