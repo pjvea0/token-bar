@@ -17,6 +17,12 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - In-panel number shortcuts for direct Claude Code and Codex selection.
 - Configurable icon-only, provider, session, and weekly menu-bar display styles.
 - System-following appearance with persistent Light and Dark overrides.
+- Claude limits recover from expired or rejected tokens by letting the Claude Code CLI renew its own login.
+
+### Fixed
+
+- A stale `~/.claude/.credentials.json` no longer hides a fresher Keychain login.
+- Desktop-app-only users now see that the Claude Code CLI is required for live limits instead of a generic auth banner.
 
 ### Changed
 

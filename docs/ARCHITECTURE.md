@@ -36,7 +36,7 @@ Claude limit collection accepts both the legacy flat session/weekly buckets and 
 
 ## Security boundary
 
-The app is deliberately unsandboxed to read CLI-owned files. Credential access is narrow: Claude's access token is read from the `Claude Code-credentials` macOS Keychain item (or the CLI file fallback), decoded in the collector, used in one HTTPS authorization header, and discarded. Codex authentication remains inside the Codex child process. Errors exposed to UI must never include request headers or raw responses.
+The app is deliberately unsandboxed to read CLI-owned files. Credential access is narrow: Claude's access token is read from the `Claude Code-credentials` macOS Keychain item (or the CLI file fallback), decoded in the collector, used in one HTTPS authorization header, and discarded. When both sources exist the credential with the later expiry wins. Expired or rejected tokens are renewed by running the CLI's non-inference `auth status` command, never by TokenBar refreshing OAuth itself (ADR 0004). Codex authentication remains inside the Codex child process. Errors exposed to UI must never include request headers or raw responses.
 
 ## Extension points
 

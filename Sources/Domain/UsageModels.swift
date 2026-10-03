@@ -59,6 +59,11 @@ struct RateLimit: Codable, Identifiable, Equatable, Sendable {
     var id: String { label }
 }
 
+/// A remediation the UI can offer next to a provider status message.
+enum StatusAction: String, Codable, Sendable {
+    case openCLI
+}
+
 struct ProviderUsage: Codable, Identifiable, Equatable, Sendable {
     let id: ProviderID
     var plan: String
@@ -72,6 +77,7 @@ struct ProviderUsage: Codable, Identifiable, Equatable, Sendable {
     var updatedAt: Date
     var status: String?
     var help: String?
+    var action: StatusAction? = nil
 
     var totalTokens: Int { models.reduce(0) { $0 + $1.tokens.total } }
     var hasUsage: Bool { totalTokens > 0 || !limits.isEmpty }

@@ -2,7 +2,7 @@
 
 ## Data handled
 
-TokenBar reads local Claude Code and Codex transcript metadata and token counts. Prompts and responses are not rendered or persisted. It temporarily reads Claude's CLI OAuth token from macOS Keychain (or the CLI file fallback) for an HTTPS request to Anthropic. macOS may ask the user to authorize this access. Codex credentials remain managed by the Codex CLI.
+TokenBar reads local Claude Code and Codex transcript metadata and token counts. Prompts and responses are not rendered or persisted. It temporarily reads Claude's CLI OAuth token from macOS Keychain (or the CLI file fallback) for an HTTPS request to Anthropic. macOS may ask the user to authorize this access. Codex credentials remain managed by the Codex CLI. When Claude's token has expired or is rejected, TokenBar runs `claude auth status` with output discarded so the CLI can renew its own login; TokenBar never performs the OAuth refresh itself and never writes credentials.
 
 ## Reporting a vulnerability
 

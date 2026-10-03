@@ -116,30 +116,45 @@ struct CodexRPCReader {
 }
 
 struct ClaudeLimitCollector: Sendable {
-    private let credentialLoader = ClaudeCredentialLoader()
+    typealias Fetch = @Sendable (ClaudeCredential) async throws -> (status: Int, body: Data)
+
+    var credentialLoader = ClaudeCredentialLoader()
+    var refresher: any ClaudeTokenRefreshing = ClaudeCLIRefresher()
+    var fetch: Fetch = ClaudeLimitCollector.requestUsage
 
     func enrich(_ usage: ProviderUsage, credentialsURL: URL) async -> ProviderUsage {
         var result = usage
-        guard let credential = credentialLoader.load(fileURL: credentialsURL) else {
-            result.status = "Waiting for auth"
-            result.help = "Claude Code has no usable macOS Keychain or credential-file login. Run `claude auth login`, then verify `claude auth status` reports loggedIn: true."
+        var credential = credentialLoader.load(fileURL: credentialsURL)
+        var refreshed = false
+        if let current = credential, current.isExpired(), refresher.isCLIInstalled {
+            await refresher.refresh()
+            refreshed = true
+            credential = credentialLoader.load(fileURL: credentialsURL)
+        }
+        guard let credential else {
+            if refresher.isCLIInstalled {
+                result.status = "No Claude Code sign-in"
+                result.help = "Run `claude auth login` once. TokenBar keeps the login fresh through the CLI afterwards."
+                result.action = .openCLI
+            } else {
+                result.status = "Claude Code CLI not installed"
+                result.help = "The Claude desktop app keeps its sign-in private. Install the Claude Code CLI and run `claude auth login` once to show live limits. Local token statistics remain available."
+            }
             return result
         }
-        if let expiry = credential.expiresAtMilliseconds, expiry <= Int(Date.now.timeIntervalSince1970 * 1_000) {
-            result.status = "Sign-in expired"
-            result.help = "Run `claude auth login` and verify `claude auth status` reports loggedIn: true. Local token statistics remain available."
-            return result
-        }
+        guard !credential.isExpired() else { return expired(result) }
         result.plan = plan(credential.rateLimitTier, credential.subscriptionType)
-        var request = URLRequest(url: URL(string: "https://api.anthropic.com/api/oauth/usage")!)
-        request.timeoutInterval = 10
-        request.setValue("Bearer \(credential.accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard (response as? HTTPURLResponse)?.statusCode == 200,
-                  let json = try? JSONDecoder().decode(JSONValue.self, from: data) else { throw URLError(.badServerResponse) }
+            var response = try await fetch(credential)
+            if response.status == 401, !refreshed, refresher.isCLIInstalled {
+                await refresher.refresh()
+                guard let renewed = credentialLoader.load(fileURL: credentialsURL), !renewed.isExpired(),
+                      renewed.accessToken != credential.accessToken else { return expired(result) }
+                response = try await fetch(renewed)
+            }
+            if response.status == 401 { return expired(result) }
+            guard response.status == 200,
+                  let json = try? JSONDecoder().decode(JSONValue.self, from: response.body) else { throw URLError(.badServerResponse) }
             result.limits = parseLimits(json)
             if result.limits.isEmpty {
                 result.status = "Claude limits unavailable"
@@ -150,6 +165,24 @@ struct ClaudeLimitCollector: Sendable {
             result.help = "\(error.localizedDescription) Local token statistics remain available."
         }
         return result
+    }
+
+    private func expired(_ usage: ProviderUsage) -> ProviderUsage {
+        var result = usage
+        result.status = "Sign-in needs refreshing"
+        result.help = "TokenBar could not refresh Claude Code's login automatically. Open Claude Code once so it can renew its token, then refresh. Local token statistics remain available."
+        result.action = .openCLI
+        return result
+    }
+
+    @Sendable static func requestUsage(_ credential: ClaudeCredential) async throws -> (status: Int, body: Data) {
+        var request = URLRequest(url: URL(string: "https://api.anthropic.com/api/oauth/usage")!)
+        request.timeoutInterval = 10
+        request.setValue("Bearer \(credential.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        return ((response as? HTTPURLResponse)?.statusCode ?? 0, data)
     }
 
     func parseLimits(_ json: JSONValue) -> [RateLimit] {
@@ -210,7 +243,7 @@ struct ClaudeLimitCollector: Sendable {
     }
 }
 
-private func executable(named name: String) -> URL? {
+func executable(named name: String) -> URL? {
     let home = FileManager.default.homeDirectoryForCurrentUser.path
     let paths = (ProcessInfo.processInfo.environment["PATH"] ?? "").split(separator: ":").map(String.init)
         + ["/opt/homebrew/bin", "/usr/local/bin", "\(home)/.local/bin", "\(home)/.npm-global/bin"]

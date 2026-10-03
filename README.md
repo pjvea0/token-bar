@@ -92,7 +92,9 @@ For Claude Code, confirm the CLI is authenticated:
 claude auth status
 ```
 
-If necessary, run `claude auth login`. For Codex, run `codex login` if the app reports that live limits are unavailable. Starting either CLI from Settings opens it in Terminal.
+If necessary, run `claude auth login`. Claude Code's access tokens are short-lived and only the CLI may renew them, so when TokenBar finds an expired token (or Anthropic rejects one) it briefly runs `claude auth status` to let the CLI refresh its own login, then rereads the Keychain. TokenBar never writes to the Keychain or `~/.claude`.
+
+If you use Claude Code only inside the Claude desktop app, TokenBar can still read your local transcripts, but the desktop app keeps its sign-in private. Install the Claude Code CLI and run `claude auth login` once to enable live limits. For Codex, run `codex login` if the app reports that live limits are unavailable. Starting either CLI from Settings opens it in Terminal.
 
 ## Terminal commands
 
@@ -129,9 +131,13 @@ sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 
 That is intentional. TokenBar uses `LSUIElement` and lives only in the menu bar. If the menu bar is crowded, macOS may hide status items; look for the sparkle icon after temporarily closing other menu-bar apps.
 
-### Claude says it is waiting for authentication
+### Claude says the CLI is not installed or has no sign-in
 
-Run `claude auth status`, then `claude auth login` if needed. Relaunch with `make run` after completing authentication, and approve any Keychain access prompt.
+TokenBar needs the Claude Code CLI's own login; the Claude desktop app's sign-in is not shared. Install the CLI, run `claude auth login`, refresh TokenBar, and approve any Keychain access prompt.
+
+### Claude says the sign-in needs refreshing
+
+TokenBar already tried to let the CLI renew its token. Use the panel's **Open Claude Code in Terminal** button (or run `claude` yourself) once, then refresh. A full `claude auth login` should only be necessary if the CLI itself reports that you are logged out.
 
 ### Codex limits are unavailable
 

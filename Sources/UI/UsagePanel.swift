@@ -71,7 +71,16 @@ struct UsagePanel: View {
     @ViewBuilder private func providerContent(_ usage: ProviderUsage) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             if let status = usage.status {
-                Label { VStack(alignment: .leading) { Text(status).font(.callout.bold()); Text(usage.help ?? "").font(.caption) } }
+                Label {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(status).font(.callout.bold())
+                        Text(usage.help ?? "").font(.caption)
+                        if usage.action == .openCLI {
+                            Button("Open \(usage.id.displayName) in Terminal") { store.launch(usage.id) }
+                                .controlSize(.small)
+                        }
+                    }
+                }
                 icon: { Image(systemName: "exclamationmark.triangle") }.foregroundStyle(.orange)
             }
             ForEach(usage.limits) { limit in LimitRow(limit: limit) }
