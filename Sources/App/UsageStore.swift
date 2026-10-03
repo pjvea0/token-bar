@@ -130,6 +130,20 @@ final class UsageStore: ObservableObject {
         isRefreshing = false
     }
 
+    /// Set by the application delegate, which owns the History window.
+    var onShowHistory: (() -> Void)?
+
+    func showHistory() { onShowHistory?() }
+
+    func loadHistory(provider: ProviderID, start: Date, end: Date) async -> UsageHistory {
+        await service.history(provider: provider, start: start, end: end)
+    }
+
+    func clearHistory() async {
+        await service.clearHistory()
+        objectWillChange.send()
+    }
+
     func sendTestNotification() async {
         guard await requestNotificationPermission() else { return }
         notifier.sendTest()

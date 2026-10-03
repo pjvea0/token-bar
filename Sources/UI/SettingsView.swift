@@ -4,6 +4,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var store: UsageStore
+    @State private var confirmClearHistory = false
     var body: some View {
         Form {
             Section("Providers") {
@@ -77,6 +78,14 @@ struct SettingsView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section("Privacy") {
+                Button("Clear Usage History…", role: .destructive) { confirmClearHistory = true }
+                    .confirmationDialog("Clear all recorded usage history?", isPresented: $confirmClearHistory) {
+                        Button("Clear History", role: .destructive) { Task { await store.clearHistory() } }
+                    } message: {
+                        Text("Daily totals still present in local transcripts will be backfilled on the next refresh. Limit samples cannot be recovered.")
+                    }
+                Text("TokenBar keeps normalized history (token counts and limit percentages, never prompts or credentials) in Application Support.")
+                    .font(.caption).foregroundStyle(.secondary)
                 Text("TokenBar reads local CLI transcripts. Claude credentials are read only to request account limits directly from Anthropic; credentials are never stored by TokenBar.")
                     .font(.caption).foregroundStyle(.secondary)
             }

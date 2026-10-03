@@ -14,6 +14,7 @@ TokenBar follows Omarchy's agents-panel information model while using familiar m
 | Refresh | Fifteen-minute background cadence plus manual action and `r` shortcut |
 | Global shortcut | A persistent, user-recordable shortcut toggles the panel globally without Accessibility permission; `Control-Shift-Command-R` is the default |
 | Menu-bar readout | Persistent choice of icon only (default), provider abbreviation, session usage, or weekly usage; unavailable limits fall back to the provider abbreviation |
+| Usage history | Separate window from the panel's clock button (or `h`); provider and range (7D/30D/90D/1Y/custom) selection with back/forward stepping; limit % line chart with alert threshold rules; stacked tokens-by-day chart with per-day model breakdown; Settings can clear history |
 | Limit notifications | Per provider × window (session, weekly) rules with up to three thresholds each; off by default; each threshold alerts once per quota window; checked on refresh |
 | Appearance | Follows the macOS color scheme by default, with persistent Light and Dark overrides |
 | Launch | Settings provides explicit Terminal launch actions for each CLI, keeping the usage panel focused on monitoring |

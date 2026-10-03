@@ -41,6 +41,7 @@ Opening Xcode is optional. The first Claude refresh may display a macOS prompt f
 | Select Codex while open | `2` |
 | Refresh while open | `R` or the refresh button |
 | Open Settings | Gear button |
+| Open usage history | Clock button, or `H` while open |
 | Show aggregate details | Information button |
 | Quit | Power button |
 
@@ -58,6 +59,13 @@ Settings → Menu Bar provides four persistent styles:
 | Weekly usage | `Cx 42%` | Shows the refreshed weekly limit |
 
 If a selected live limit is unavailable, TokenBar falls back to the provider abbreviation rather than displaying stale or invented data.
+
+## Usage history
+
+The clock button in the panel opens the History window. Choose a provider and a 7-day, 30-day, 90-day, 1-year, or custom range, then use the arrows to step back and forward in time. It shows:
+
+- **Limit usage**: recorded session and weekly percentages over time, with dashed lines at your enabled alert thresholds. Limit samples exist only for times TokenBar was running.
+- **Tokens by day**: local transcript tokens stacked by model, backfilled from every transcript still on disk. Select a day for its per-model input, output, and cache breakdown, prompts, and sessions.
 
 ## Limit notifications
 

@@ -43,6 +43,10 @@ struct UsagePanel: View {
                 SettingsLink { Image(systemName: "gearshape") }
                     .buttonStyle(.plain)
                     .help("Settings")
+                Button { store.showHistory() } label: { Image(systemName: "clock.arrow.circlepath") }
+                    .buttonStyle(.plain)
+                    .keyboardShortcut("h", modifiers: [])
+                    .help("Usage history")
                 if let usage = store.current {
                     UsageInfoButton(usage: usage)
                 }

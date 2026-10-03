@@ -9,7 +9,7 @@
 
 ## Release 0.2 — Omarchy parity
 
-- Export/import normalized, credential-free device snapshots from a user-selected sync folder.
+- Export/import normalized history and, credential-free device snapshots from a user-selected sync folder.
 - Merge active dates by union, machine-local tokens by sum, and account-level limits without summing.
 - Support user-selected transcript roots in addition to `CLAUDE_CONFIG_DIR` and `CODEX_HOME`.
 - Scan archived Codex sessions and compatible Pi/OpenCode sessions without double-counting.

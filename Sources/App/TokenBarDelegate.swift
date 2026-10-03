@@ -8,6 +8,7 @@ final class TokenBarDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate
     let store = UsageStore()
 
     private let popover = NSPopover()
+    private var historyWindow: NSWindow?
     private var statusItem: NSStatusItem?
     private var hotKey: GlobalHotKey?
     private var keyboardMonitor: Any?
@@ -22,6 +23,7 @@ final class TokenBarDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate
         observeGlobalShortcut()
         registerGlobalShortcut(store.globalShortcut)
         registerPanelShortcuts()
+        store.onShowHistory = { [weak self] in self?.showHistory() }
         refreshTask = Task { await store.start() }
     }
 
@@ -45,6 +47,24 @@ final class TokenBarDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         applyAppearance(store.appearance)
         button.highlight(true)
+    }
+
+    /// AppKit owns the History window for the same reason it owns the popover: a menu-bar-only
+    /// app must activate itself and present the window from a non-scene context.
+    private func showHistory() {
+        popover.performClose(nil)
+        if historyWindow == nil {
+            let window = NSWindow(contentViewController: NSHostingController(rootView: HistoryView(store: store)))
+            window.title = "Usage History"
+            window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
+            window.setContentSize(NSSize(width: 760, height: 680))
+            window.isReleasedWhenClosed = false
+            window.setFrameAutosaveName("TokenBarHistory")
+            window.center()
+            historyWindow = window
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        historyWindow?.makeKeyAndOrderFront(nil)
     }
 
     func popoverDidClose(_ notification: Notification) {
