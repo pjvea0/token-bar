@@ -21,6 +21,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Configurable limit notifications per provider and window, with up to three thresholds each.
 - Local usage history: daily token totals backfilled from transcripts and limit utilization samples, kept after transcripts are pruned.
 - Usage History window with limit and daily token charts, range stepping, and per-day model detail.
+- Gemini provider combining local Gemini CLI chats and Antigravity conversations, with daily and per-model token history (no live limits).
 
 ### Changed
 

@@ -98,7 +98,7 @@ struct UsagePanel: View {
     }
 
     private var emptyState: some View {
-        ContentUnavailableView("No usage yet", systemImage: "sparkles", description: Text("Sign in to Claude Code or Codex and complete a session, then refresh."))
+        ContentUnavailableView("No usage yet", systemImage: "sparkles", description: Text("Sign in to Claude Code, Codex, or Gemini and complete a session, then refresh."))
             .frame(height: 220)
     }
 }

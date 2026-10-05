@@ -1,6 +1,6 @@
 # TokenBar
 
-TokenBar is a native macOS menu-bar dashboard for Claude Code and OpenAI Codex. It shows live subscription limits alongside local token activity in an Omarchy-inspired interface designed for macOS.
+TokenBar is a native macOS menu-bar dashboard for Claude Code, OpenAI Codex, and Google Gemini (Gemini CLI and Antigravity). It shows live subscription limits alongside local token activity in an Omarchy-inspired interface designed for macOS.
 
 TokenBar runs on **macOS 15.0 and newer**, including macOS 15.7.4. It is a menu-bar-only app: there is no Dock icon and Xcode does not need to be opened.
 
@@ -17,7 +17,7 @@ TokenBar runs on **macOS 15.0 and newer**, including macOS 15.7.4. It is a menu-
 | Xcode 16 or newer | Install the full Xcode application, not only Command Line Tools |
 | [Homebrew](https://brew.sh) | Used by the quick-start command to install XcodeGen |
 | [XcodeGen](https://github.com/yonaskolb/XcodeGen) | Generates the local Xcode project from `project.yml` |
-| Claude Code or Codex | At least one supported CLI should be installed and signed in |
+| Claude Code, Codex, or Gemini | At least one supported agent should be installed and used: Claude Code, Codex, Gemini CLI, or Antigravity |
 
 Clone and run from a terminal:
 
@@ -39,6 +39,7 @@ Opening Xcode is optional. The first Claude refresh may display a macOS prompt f
 | Open or close TokenBar globally | `Control-Shift-Command-R` by default; configurable in Settings |
 | Select Claude Code while open | `1` |
 | Select Codex while open | `2` |
+| Select Gemini while open | `3` |
 | Refresh while open | `R` or the refresh button |
 | Open Settings | Gear button |
 | Open usage history | Clock button, or `H` while open |
@@ -69,7 +70,7 @@ The clock button in the panel opens the History window. Choose a provider and a 
 
 ## Limit notifications
 
-Settings → Notifications has one rule per provider and window: Claude Code Session, Claude Code Weekly, Codex Session, and Codex Weekly. Each rule can hold up to three thresholds (5–100% in 5% steps; 80% and 95% are suggested). Rules are off by default, and macOS asks for notification permission the first time you enable one.
+Settings → Notifications has one rule per provider and window: Claude Code Session, Claude Code Weekly, Codex Session, and Codex Weekly. Gemini reports no limits, so it has no rules. Each rule can hold up to three thresholds (5–100% in 5% steps; 80% and 95% are suggested). Rules are off by default, and macOS asks for notification permission the first time you enable one.
 
 Each threshold notifies once per quota window and re-arms after the limit resets. If a refresh jumps past several thresholds at once, only the highest is announced. Limits are checked on every refresh, so an alert can arrive up to one refresh interval after the crossing. Use **Send Test Notification** to confirm delivery.
 
@@ -93,6 +94,7 @@ Provider limits and local transcript totals are separate datasets:
 | Tokens by day | Local transcript tokens for the last seven calendar days |
 | Claude tokens by model | All retained local Claude transcript history |
 | Codex tokens by model | A timestamp-accurate rolling 30 days of local Codex history |
+| Gemini tokens by model | All retained local Gemini CLI chats and Antigravity conversations |
 
 Local totals combine input, output, cache-read, and cache-write tokens. They are useful activity statistics, but they are not a conversion of the provider's quota percentage. Hover over a model row for the category breakdown, or open the information popover for exact totals, prompts, sessions, and active days.
 
@@ -109,6 +111,8 @@ claude auth status
 If necessary, run `claude auth login`. Claude Code's access tokens are short-lived and only the CLI may renew them, so when TokenBar finds an expired token (or Anthropic rejects one) it briefly runs `claude auth status` (using `claude` on PATH, or else the Claude Code build bundled with the Claude desktop app) to let the CLI refresh its own login, then rereads the Keychain. TokenBar never writes to the Keychain or `~/.claude`.
 
 If you use Claude Code only inside the Claude desktop app, TokenBar can still read your local transcripts, but the desktop app keeps its sign-in private. Install the Claude Code CLI and run `claude auth login` once to enable live limits. For Codex, run `codex login` if the app reports that live limits are unavailable. Starting either CLI from Settings opens it in Terminal.
+
+Gemini needs no sign-in step. TokenBar reads only local Gemini CLI chats and Antigravity conversations, and never reads Google credentials. Neither tool exposes a supported quota interface, so the Gemini tab shows local usage only and no session or weekly limits.
 
 ## Terminal commands
 
@@ -157,6 +161,10 @@ TokenBar already tried to let the CLI renew its token. Use the panel's **Open Cl
 
 Run `codex login`, verify the Codex CLI itself works, and then refresh TokenBar. Local transcript statistics remain visible when the live limit request fails.
 
+### Gemini shows no activity
+
+TokenBar reads Gemini CLI chats from `~/.gemini/tmp/*/chats/` and Antigravity conversations from `~/.gemini/antigravity/conversations/`. Complete at least one response in either tool, then refresh. Antigravity's storage format is undocumented; if an Antigravity update changes it, TokenBar skips the unreadable records rather than showing wrong numbers.
+
 ### A limit row is missing
 
 Limit rows are not hidden based on utilization. TokenBar displays every recognized limit returned for the account, including Claude model-scoped limits. A missing row means the provider did not return that allowance or its response format changed; please report a sanitized description without posting account responses or credentials.
@@ -168,6 +176,8 @@ TokenBar is local-first and has no server. It reads token metadata from:
 - `~/.claude/projects/**/*.jsonl`
 - `~/.codex/sessions/**/*.jsonl`
 - `~/.codex/archived_sessions/**/*.jsonl`
+- `~/.gemini/tmp/*/chats/*.json` and `*.jsonl` (Gemini CLI)
+- `~/.gemini/antigravity/conversations/*.db` (Antigravity; read through a temporary copy so the live database is never opened)
 
 For live limits, TokenBar reads Claude Code's OAuth credential from macOS Keychain, with the CLI credential file as a compatibility fallback, and sends it only to Anthropic's usage endpoint. Codex credentials stay inside the locally launched `codex app-server` process.
 
@@ -200,4 +210,4 @@ No open-source license has been selected. Until the repository owner adds one, a
 
 ## Attribution
 
-The interaction and information design is inspired by Omarchy's agents panel. This implementation is original Swift code and does not bundle Omarchy source or assets. TokenBar is independent and is not affiliated with Omarchy, Anthropic, or OpenAI.
+The interaction and information design is inspired by Omarchy's agents panel. This implementation is original Swift code and does not bundle Omarchy source or assets. TokenBar is independent and is not affiliated with Omarchy, Anthropic, OpenAI, or Google.

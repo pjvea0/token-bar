@@ -6,10 +6,10 @@ TokenBar follows Omarchy's agents-panel information model while using familiar m
 | --- | --- |
 | Provider hero and plan | Provider name, symbol, plan, and actionable auth/error state |
 | Subscription switch | Native segmented control when multiple providers are enabled |
-| Keyboard provider switch | While the panel is open, `1` selects Claude Code and `2` selects Codex |
+| Keyboard provider switch | While the panel is open, `1` selects Claude Code, `2` selects Codex, and `3` selects Gemini |
 | Limits | Percentage used, progress meter, and relative reset time |
 | Token history | Seven local calendar days as relative horizontal meters; hover reveals detail |
-| Model usage | Descending relative meters; Claude covers all retained local history and Codex covers a timestamp-accurate rolling 30 days |
+| Model usage | Descending relative meters; Claude and Gemini cover all retained local history and Codex covers a timestamp-accurate rolling 30 days |
 | Panel sizing | Expands to fit its usage content without an internal scrolling region |
 | Refresh | Fifteen-minute background cadence plus manual action and `r` shortcut |
 | Global shortcut | A persistent, user-recordable shortcut toggles the panel globally without Accessibility permission; `Control-Shift-Command-R` is the default |
@@ -23,7 +23,7 @@ TokenBar follows Omarchy's agents-panel information model while using familiar m
 
 ## Parity boundaries
 
-The initial product targets Claude Code and OpenAI Codex, as requested. Omarchy's Fireworks prepaid-balance provider is not in scope. Omarchy can merge normalized snapshots from synced Linux machines; TokenBar's corresponding cross-device snapshot feature is planned but not implemented. Native macOS settings replace edits to Omarchy's shell JSON.
+The initial product targets Claude Code and OpenAI Codex, as requested. Gemini (Gemini CLI and Antigravity combined) is supported for local usage only: Google exposes no supported quota interface, so Gemini shows no limits, notifications, or limit history. Omarchy's Fireworks prepaid-balance provider is not in scope. Omarchy can merge normalized snapshots from synced Linux machines; TokenBar's corresponding cross-device snapshot feature is planned but not implemented. Native macOS settings replace edits to Omarchy's shell JSON.
 
 Provider-reported limits and local transcript statistics are deliberately separate. A session or weekly percentage describes the provider's current quota window; token history is not presented as a conversion of that percentage. Every history section labels its own time scope.
 

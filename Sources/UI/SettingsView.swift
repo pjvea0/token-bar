@@ -10,6 +10,7 @@ struct SettingsView: View {
             Section("Providers") {
                 Toggle("Claude Code", isOn: $store.claudeEnabled)
                 Toggle("Codex", isOn: $store.codexEnabled)
+                Toggle("Gemini (CLI and Antigravity)", isOn: $store.geminiEnabled)
             }
             Section("Refresh") {
                 Stepper("Every \(store.refreshMinutes) minutes", value: $store.refreshMinutes, in: 1...60)
@@ -60,6 +61,7 @@ struct SettingsView: View {
                 }
                 LabeledContent("Claude Code tab", value: "1")
                 LabeledContent("Codex tab", value: "2")
+                LabeledContent("Gemini tab", value: "3")
                 Text("Click the shortcut to record a new modified key. Number shortcuts work while the panel is open.")
                     .font(.caption).foregroundStyle(.secondary)
                 if !store.globalShortcutAvailable {
@@ -74,7 +76,10 @@ struct SettingsView: View {
                 Button { store.launch(.codex) } label: {
                     Label("Open Codex in Terminal", systemImage: "terminal")
                 }
-                Text("Agent launch actions open a new command in Terminal.")
+                Button { store.launch(.gemini) } label: {
+                    Label("Open Gemini CLI or Antigravity", systemImage: "terminal")
+                }
+                Text("Agent launch actions open a new command in Terminal. Gemini opens Antigravity when Gemini CLI is not installed.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section("Privacy") {
@@ -86,7 +91,7 @@ struct SettingsView: View {
                     }
                 Text("TokenBar keeps normalized history (token counts and limit percentages, never prompts or credentials) in Application Support.")
                     .font(.caption).foregroundStyle(.secondary)
-                Text("TokenBar reads local CLI transcripts. Claude credentials are read only to request account limits directly from Anthropic; credentials are never stored by TokenBar.")
+                Text("TokenBar reads local CLI transcripts. Claude credentials are read only to request account limits directly from Anthropic; Gemini credentials are never read; credentials are never stored by TokenBar.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
