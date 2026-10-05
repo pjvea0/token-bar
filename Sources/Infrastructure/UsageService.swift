@@ -2,7 +2,6 @@ import Foundation
 
 actor UsageService {
     private let scanner = TranscriptScanner()
-    private let geminiScanner = GeminiScanner()
     private let historyStore: HistoryStore
 
     init(historyStore: HistoryStore = HistoryStore()) {
@@ -28,17 +27,6 @@ actor UsageService {
             historyStore.recordDaily(provider: .codex, daily: local.daily)
             let usage = CodexLimitCollector().enrich(local.usage)
             historyStore.recordLimits(provider: .codex, limits: usage.limits)
-            values.append(usage)
-        }
-        if enabled.contains(.gemini) {
-            let local = geminiScanner.scanWithHistory(home: home.appendingPathComponent(".gemini"))
-            historyStore.recordDaily(provider: .gemini, daily: local.daily)
-            var usage = local.usage
-            usage.plan = "Local usage only"
-            if !usage.hasUsage {
-                usage.status = "No Gemini activity found"
-                usage.help = "TokenBar reads Gemini CLI chats and Antigravity conversations from ~/.gemini. Gemini does not report live limits."
-            }
             values.append(usage)
         }
         return values

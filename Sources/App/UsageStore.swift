@@ -22,7 +22,7 @@ enum MenuBarDisplayStyle: String, CaseIterable, Identifiable, Sendable {
 
     func label(provider: ProviderID?, limits: [RateLimit]) -> String {
         guard self != .iconOnly, let provider else { return "" }
-        let abbreviation = provider.abbreviation
+        let abbreviation = provider == .claude ? "Cl" : "Cx"
         guard self != .provider else { return abbreviation }
         let window: LimitWindow = self == .session ? .session : .weekly
         let limit = limits.first { $0.window == window }
@@ -57,7 +57,6 @@ final class UsageStore: ObservableObject {
     @Published var refreshMinutes = 15 { didSet { defaults.set(refreshMinutes, forKey: Keys.refreshMinutes) } }
     @Published var claudeEnabled = true { didSet { defaults.set(claudeEnabled, forKey: Keys.claudeEnabled) } }
     @Published var codexEnabled = true { didSet { defaults.set(codexEnabled, forKey: Keys.codexEnabled) } }
-    @Published var geminiEnabled = true { didSet { defaults.set(geminiEnabled, forKey: Keys.geminiEnabled) } }
     @Published var globalShortcutAvailable = true
     @Published var menuBarStyle: MenuBarDisplayStyle = .initial {
         didSet { defaults.set(menuBarStyle.rawValue, forKey: Keys.menuBarStyle) }
@@ -93,7 +92,6 @@ final class UsageStore: ObservableObject {
         if defaults.object(forKey: Keys.refreshMinutes) != nil { refreshMinutes = max(1, defaults.integer(forKey: Keys.refreshMinutes)) }
         if defaults.object(forKey: Keys.claudeEnabled) != nil { claudeEnabled = defaults.bool(forKey: Keys.claudeEnabled) }
         if defaults.object(forKey: Keys.codexEnabled) != nil { codexEnabled = defaults.bool(forKey: Keys.codexEnabled) }
-        if defaults.object(forKey: Keys.geminiEnabled) != nil { geminiEnabled = defaults.bool(forKey: Keys.geminiEnabled) }
         if let raw = defaults.string(forKey: Keys.menuBarStyle), let style = MenuBarDisplayStyle(rawValue: raw) { menuBarStyle = style }
         if let data = defaults.data(forKey: Keys.globalShortcut),
            let shortcut = try? JSONDecoder().decode(GlobalShortcut.self, from: data) { globalShortcut = shortcut }
@@ -125,19 +123,11 @@ final class UsageStore: ObservableObject {
     func refresh() async {
         guard !isRefreshing else { return }
         isRefreshing = true
-        let enabled = Set(ProviderID.allCases.filter(isEnabled))
+        let enabled = Set(ProviderID.allCases.filter { $0 == .claude ? claudeEnabled : codexEnabled })
         usages = await service.collect(enabled: enabled)
         if !usages.contains(where: { $0.id == selected }), let first = usages.first { selected = first.id }
         evaluateAlerts()
         isRefreshing = false
-    }
-
-    func isEnabled(_ provider: ProviderID) -> Bool {
-        switch provider {
-        case .claude: claudeEnabled
-        case .codex: codexEnabled
-        case .gemini: geminiEnabled
-        }
     }
 
     /// Set by the application delegate, which owns the History window.
@@ -174,13 +164,6 @@ final class UsageStore: ObservableObject {
     }
 
     func launch(_ provider: ProviderID) {
-        // Without Gemini CLI, Antigravity is the Gemini agent to open.
-        if provider == .gemini, executable(named: provider.command) == nil {
-            if let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.google.antigravity") {
-                NSWorkspace.shared.openApplication(at: app, configuration: NSWorkspace.OpenConfiguration())
-            }
-            return
-        }
         let script = "tell application \"Terminal\" to do script \"\(provider.command)\""
         if let appleScript = NSAppleScript(source: script) { var error: NSDictionary?; appleScript.executeAndReturnError(&error) }
     }
@@ -190,7 +173,6 @@ final class UsageStore: ObservableObject {
         static let refreshMinutes = "refreshMinutes"
         static let claudeEnabled = "claudeEnabled"
         static let codexEnabled = "codexEnabled"
-        static let geminiEnabled = "geminiEnabled"
         static let menuBarStyle = "menuBarStyle"
         static let globalShortcut = "globalShortcut"
         static let appearance = "appearance"

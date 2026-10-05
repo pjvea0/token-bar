@@ -59,7 +59,7 @@ struct HistoryView: View {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 20) {
                             summary(history)
-                            if history.provider.reportsLimits { limitChart(history) }
+                            limitChart(history)
                             tokenChart(history)
                             if let selectedDay, let day = history.days.first(where: { calendar.isDate($0.date, inSameDayAs: selectedDay) }) {
                                 DayDetail(day: day)

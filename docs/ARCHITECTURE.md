@@ -5,8 +5,7 @@
 ```text
 CLI-owned data             Provider adapters                Normalized state          Native UI
 ~/.claude/projects  ─┐     TranscriptScanner ─┐
-~/.codex/sessions   ─┤     GeminiScanner     ─┤
-~/.gemini           ─┴──▶  LimitCollectors   ─┴──▶ UsageService ─▶ UsageStore ─▶ Status item + popover
+~/.codex/sessions   ─┴──▶  LimitCollectors   ─┴──▶ UsageService ─▶ UsageStore ─▶ Status item + popover
 Anthropic endpoint  ─────▶ Claude adapter
 codex app-server    ─────▶ Codex adapter
 ```
@@ -19,7 +18,7 @@ The central design rule is normalization before presentation. Every provider pro
 
 The status item uses an `NSPopover` whose content is the existing SwiftUI `UsagePanel`. AppKit owns this thin shell because SwiftUI's public `MenuBarExtra` API can control insertion but cannot programmatically present its window. The Carbon hot-key API provides system-wide activation without keyboard monitoring or Accessibility permission. The selected physical key code, Carbon modifier mask, and display label are persisted as one `GlobalShortcut` value; changing it tears down the previous registration before installing the replacement.
 
-An AppKit local event monitor handles unmodified `1`, `2`, and `3` only while the popover is visible. It never observes events delivered to other applications. Menu-bar display style is a persisted presentation preference in `UsageStore`; fresh installations default to icon-only, and labels are derived from each refreshed normalized limit rather than cached separately.
+An AppKit local event monitor handles unmodified `1` and `2` only while the popover is visible. It never observes events delivered to other applications. Menu-bar display style is a persisted presentation preference in `UsageStore`; fresh installations default to icon-only, and labels are derived from each refreshed normalized limit rather than cached separately.
 
 Appearance is also a persisted `UsageStore` preference. The application delegate is the single appearance authority: it applies the selected `NSAppearance` to the application, hosted content, and realized popover window. It reapplies that value immediately before and after presentation because `NSPopover` creates or reuses its window lazily. A nil appearance preserves normal macOS System behavior. Views inherit this effective appearance rather than forcing an independent SwiftUI color scheme, preventing mismatched text and surfaces.
 
@@ -29,11 +28,7 @@ Limit notifications are evaluated by the pure `LimitAlertEvaluator` after each r
 
 Transcript files are newline-delimited JSON and treated as an append-only, externally controlled format. Scans skip malformed and irrelevant lines. Claude messages deduplicate by message ID. Codex token snapshots use `last_token_usage`, not cumulative session usage; cached input is subtracted from input before categories are summed.
 
-All scanners emit normalized `UsageEvent` values into a shared `UsageAccumulator`, which deduplicates by event ID and builds both the panel summary and per-day history.
-
-Gemini is one provider fed by two local sources (ADR 0006). Gemini CLI chat recordings (`tmp/*/chats/*.json` or `.jsonl`) contribute `gemini` messages: cached tokens are subtracted from `input`, tool-use prompt tokens count as input, and `thoughts` count as output. Antigravity conversation databases are copied, together with their WAL, to a private temporary directory before SQLite opens the copy. Each `gen_metadata` protobuf row is one generation (field 1→4 usage: 2 uncached input, 3 output including thinking, 5 cached input; 1→19 model). Generations are dated by the matching `step_type` 15 step's timestamp (`steps.metadata` 1→1), or by the conversation's latest step when the counts disagree. Unreadable rows are skipped. Gemini has no limit collector and no alert rules.
-
-Calendar-day aggregation uses the user's current calendar and timezone. The seven-day series always contains seven buckets, including zero-use days. Claude and Gemini model and summary totals cover every retained local event. Codex totals use each event's timestamp to enforce a rolling 30-day window; file modification dates do not determine inclusion. Future-dated events are excluded. These local history windows are independent of provider-reported quota cycles.
+Calendar-day aggregation uses the user's current calendar and timezone. The seven-day series always contains seven buckets, including zero-use days. Claude model and summary totals cover every retained local transcript event. Codex totals use each event's timestamp to enforce a rolling 30-day window; file modification dates do not determine inclusion. Future-dated events are excluded. These local history windows are independent of provider-reported quota cycles.
 
 Claude limit collection accepts both the legacy flat session/weekly buckets and current model-scoped entries in the OAuth usage payload. A null model-specific flat bucket does not mask the general weekly fallback. Percentage normalization is chosen across the whole payload so every returned limit uses one scale.
 

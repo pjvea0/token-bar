@@ -148,7 +148,6 @@ final class TokenBarDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate
             switch event.charactersIgnoringModifiers {
             case "1": provider = .claude
             case "2": provider = .codex
-            case "3": provider = .gemini
             default: provider = nil
             }
             guard let provider, self.store.usages.contains(where: { $0.id == provider }) else { return event }

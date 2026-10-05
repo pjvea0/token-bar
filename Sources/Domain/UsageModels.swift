@@ -3,29 +3,10 @@ import Foundation
 enum ProviderID: String, Codable, CaseIterable, Identifiable, Sendable {
     case claude
     case codex
-    case gemini
 
     var id: String { rawValue }
+    var displayName: String { self == .claude ? "Claude Code" : "Codex" }
     var command: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        case .claude: "Claude Code"
-        case .codex: "Codex"
-        case .gemini: "Gemini"
-        }
-    }
-
-    var abbreviation: String {
-        switch self {
-        case .claude: "Cl"
-        case .codex: "Cx"
-        case .gemini: "Gm"
-        }
-    }
-
-    /// Gemini CLI and Antigravity expose no supported quota interface, so Gemini is local-only.
-    var reportsLimits: Bool { self != .gemini }
 }
 
 struct TokenBreakdown: Codable, Equatable, Sendable {
@@ -134,7 +115,7 @@ struct AlertRule: Codable, Equatable, Identifiable, Sendable {
     static let maximumThresholds = 3
 
     static var defaults: [AlertRule] {
-        ProviderID.allCases.filter(\.reportsLimits).flatMap { provider in
+        ProviderID.allCases.flatMap { provider in
             LimitWindow.allCases.map { AlertRule(provider: provider, window: $0, enabled: false, thresholds: suggestedThresholds) }
         }
     }
